@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{shared/layout :: view('customer', ~{::title}, ~{::article})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý hồ sơ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+</head>
+
+<body>
+    <article>
+    	<style>
+    	
+	        .address-card {
+	            border: 1px solid #ddd;
+	            border-radius: 10px;
+	            padding: 15px;
+	            margin-bottom: 15px;
+	            background-color: #fff;
+	            transition: 0.2s;
+	        }
+	
+	        .address-card:hover {
+	            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+	        }
+	
+	        .address-card.default {
+	            border: 2px solid #ff5722;
+	            background-color: #fff7f3;
+	        }
+	
+	        .address-header {
+	            font-weight: bold;
+	            font-size: 1.1rem;
+	        }
+	
+	        .badge-default {
+	            background-color: #fff;
+	            border: 1px solid #ff5722;
+	            color: #ff5722;
+	            font-size: 0.8rem;
+	            padding: 3px 6px;
+	            border-radius: 5px;
+	        }
+	
+	        .card-header {
+	            font-weight: bold;
+	        }
+	    </style>
+        <div class="container my-4">
+            <h3 class="mb-4">👤 Quản lý hồ sơ</h3>
+
+            <div class="row align-items-stretch">
+                <!-- Thông tin cá nhân -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm mb-4 h-80">
+                        <div class="card-header bg-primary text-white">
+                            Thông tin cá nhân
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Họ và tên</label>
+                                    <input type="text" class="form-control" value="Nguyễn Hoàng Minh Quân">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <input type="email" class="form-control" value="minhquan@gmail.com">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Số điện thoại</label>
+                                    <input type="text" class="form-control" value="0696969696">
+                                </div>
+
+                                <div class="mb-2">
+
+                                    <label class="form-check-label" for="setDefault">
+                                        <a href="#" target="_blank">Bạn cần hỗ trợ?</a>
+                                    </label>
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save me-1"></i> Lưu thay đổi
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin địa chỉ -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm mb-4 h-80">
+
+                        <div class="card-header bg-success text-white">
+                            <i class="fa-brands fa-font-awesome"></i> Địa chỉ nhận hàng
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Họ và tên người nhận</label>
+                                    <input type="text" class="form-control" placeholder="Nguyễn Văn A">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Địa chỉ</label>
+                                    <input type="text" class="form-control" placeholder="Nhập địa chỉ nhận hàng...">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Số điện thoại</label>
+                                    <input type="text" class="form-control" placeholder="Nhập số điện thoại...">
+                                </div>
+                                <div class="text-start mb-2">
+                                    <input class="form-check-input" type="checkbox" id="setDefault">
+                                    <label class="form-check-label" for="setDefault">
+                                        Đặt làm địa chỉ mặc định
+                                    </label>
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary me-2">
+                                        <i class="fas fa-plus"></i> Thêm / Cập nhật
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Danh sách địa chỉ -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    📍 Quản lý địa chỉ nhận hàng
+                </div>
+                <div class="card-body">
+                    <!-- Một địa chỉ mặc định -->
+                    <div class="address-card default">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="address-header">Nguyễn Hoàng Minh Quân <span class="text-muted">(+84) 696
+                                        969
+                                        696</span></div>
+                                <div>Hẻm Cao Bằng, P.Thử Nghiệm, Q.12, TP.HCM</div>
+                            </div>
+                            <div class="text-end">
+                                <button class="btn btn-sm btn-outline-danger me-2" disabled>
+                                    <i class="fas fa-check"></i> Mặc định
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i> Cập
+                                    nhật</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Một địa chỉ khác -->
+                    <div class="address-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="address-header">Nguyễn Duy Nguyên Minh <span class="text-muted">(+84) 777
+                                        777
+                                        777</span></div>
+                                <div>Đường Cà Mau, P.9, TP.HCM</div>
+                            </div>
+                            <div class="text-end">
+                                <button class="btn btn-sm btn-outline-success me-2"><i class="fas fa-check"></i> Đặt mặc
+                                    định</button>
+                                <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i> Cập
+                                    nhật</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="address-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="address-header">Đặng Trần Hoàng Anh <span class="text-muted">(+84) 888 888
+                                        888</span></div>
+                                <div>Đường Lê Quý Đôn, Xã Đồng Bào, Tỉnh Hạnh Phúc</div>
+                            </div>
+                            <div class="text-end">
+                                <button class="btn btn-sm btn-outline-success me-2"><i class="fas fa-check"></i> Đặt mặc
+                                    định</button>
+                                <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i> Cập
+                                    nhật</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <button class="btn btn-outline-success"><i class="fas fa-plus"></i> Thêm địa chỉ mới</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </article>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
