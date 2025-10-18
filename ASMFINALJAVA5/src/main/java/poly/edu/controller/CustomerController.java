@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -271,7 +272,7 @@ public class CustomerController {
             model.addAttribute("customer", customer);
 
             // Lấy danh sách địa chỉ
-            List<DiaChi> addresses = diaChiDAO.findByMaKH(customer.getMaKH());
+            List<DiaChi> addresses = diaChiDAO.findByKhachHang_MaKHAndTrangThaiXoaFalse(customer.getMaKH());
             model.addAttribute("addresses", addresses);
 
         } catch (Exception e) {
@@ -285,6 +286,7 @@ public class CustomerController {
     @PostMapping("/update-profile")
     public String updateProfile(RedirectAttributes redirectAttributes) {
     	String fullname = paramService.getString("fullname", "");
+    	String email = paramService.getString("email", "");
         String phone = paramService.getString("phone", "");
         try {
             Users currentUser = authService.getCurrentUser();
@@ -298,11 +300,22 @@ public class CustomerController {
                 return "redirect:/customer/profile";
             }
             
+            Users existingUser = usersDAO.findByMail(email);
+            if (existingUser != null && !existingUser.getUserID().equals(currentUser.getUserID())) {
+                redirectAttributes.addFlashAttribute("error", "Email đã được sử dụng bởi tài khoản khác");
+                return "redirect:/customer/profile";
+            }
+            
             customer.setTenKH(fullname);
             customer.setSdt(phone);
+            
+            currentUser.setMail(email);
+            usersDAO.save(currentUser);
+            
             khachHangDAO.save(customer);
             
             sessionService.set("userName", fullname);
+            sessionService.set("userMail", email);
             
             redirectAttributes.addFlashAttribute("message", "Cập nhật thông tin thành công!");
         } catch (Exception e) {
@@ -364,7 +377,7 @@ public class CustomerController {
             newAddress.setSdt(sdt);
             newAddress.setDiemGiao(diemGiao);
             newAddress.setMacDinh(macDinh);
-            
+            newAddress.setTrangThaiXoa(false);
             diaChiDAO.save(newAddress);
             redirectAttributes.addFlashAttribute("message", "Thêm địa chỉ thành công!");
         } catch (Exception e) {
@@ -455,7 +468,7 @@ public class CustomerController {
                 return "redirect:/customer/profile";
             }
 
-            diaChiDAO.deleteById(addressId);
+            diaChiDAO.softDelete(addressId);
             redirectAttributes.addFlashAttribute("message", "Xóa địa chỉ thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Xóa địa chỉ thất bại: " + e.getMessage());
@@ -463,6 +476,37 @@ public class CustomerController {
         return "redirect:/customer/profile";
     }
     
+
+    @GetMapping("/profile/edit-address/{maDC}")
+    public String editAddress(@PathVariable("maDC") Integer maDC, Model model) {
+        try {
+            Users currentUser = authService.getCurrentUser();
+            if (currentUser == null) {
+                return "redirect:/auth/login";
+            }
+
+            KhachHang customer = khachHangDAO.findByUser_UserID(currentUser.getUserID());
+            if (customer == null) {
+                model.addAttribute("error", "Không tìm thấy thông tin khách hàng");
+                return "customer/KH_QLuser";
+            }
+            
+            model.addAttribute("customer", customer);
+
+            List<DiaChi> addresses = diaChiDAO.findByKhachHang_MaKHAndTrangThaiXoaFalse(customer.getMaKH());
+            model.addAttribute("addresses", addresses);
+
+            Optional<DiaChi> addressToEdit = diaChiDAO.findById(maDC);
+            if (addressToEdit.isPresent()) {
+                model.addAttribute("addressToEdit", addressToEdit.get());
+            }
+
+        } catch (Exception e) {
+            model.addAttribute("error", "Lỗi khi tải thông tin: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return "customer/KH_QLuser";
     // -----------------------------------------------------------------------------------
     // VI. QUẢN LÝ ĐỊA CHỈ (DÙNG CHO CHECKOUT MODAL - Dùng @ModelAttribute)
     // -----------------------------------------------------------------------------------
@@ -521,5 +565,6 @@ public class CustomerController {
              redirectAttributes.addFlashAttribute("error", "Không tìm thấy hoặc không có quyền xóa địa chỉ này.");
         }
         return "redirect:/customer/checkout";
+
     }
 }

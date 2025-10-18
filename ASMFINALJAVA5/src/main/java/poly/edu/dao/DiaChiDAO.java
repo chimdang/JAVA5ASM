@@ -12,6 +12,20 @@ import poly.edu.entity.DiaChi;
 import java.util.List;
 
 public interface DiaChiDAO extends JpaRepository<DiaChi, Integer> {
+
+	List<DiaChi> findByKhachHang_MaKHAndTrangThaiXoaFalse(Integer maKH);
+	
+	@Modifying
+	@Transactional
+	@Query("UPDATE DiaChi d SET d.macDinh = false WHERE d.khachHang.maKH = :maKH AND d.trangThaiXoa = false")
+	void clearDefaultAddress(@Param("maKH") Integer maKH);
+	
+	@Modifying
+	@Transactional
+	@Query("UPDATE DiaChi d SET d.trangThaiXoa = true WHERE d.maDC = :maDC")
+	void softDelete(@Param("maDC") Integer maDC);
+}	
+
     
 	 @Query("SELECT d FROM DiaChi d WHERE d.khachHang.maKH = :maKH")
 	 List<DiaChi> findByMaKH(@Param("maKH") Integer maKH);
@@ -22,3 +36,4 @@ public interface DiaChiDAO extends JpaRepository<DiaChi, Integer> {
 	 void clearDefaultAddress(@Param("maKH") Integer maKH);
 	 List<DiaChi> findByKhachHang(KhachHang khachHang);
 }
+

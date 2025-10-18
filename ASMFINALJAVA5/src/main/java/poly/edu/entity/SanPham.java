@@ -23,4 +23,6 @@ public class SanPham {
     
     @Column(columnDefinition = "nvarchar(max)")
     private String moTa;
+    
+    private String trangThai;
 }
