@@ -31,7 +31,7 @@ public class AuthService {
 
         
         if (nv != null) {
-            sessionService.set("userRole", nv.getVaitro());
+            sessionService.set("userRole", nv.getVaiTro());
             sessionService.set("userName", nv.getTenNV());
         } else if (kh != null) {
             sessionService.set("userRole", "CUSTOMER");
@@ -99,7 +99,7 @@ public class AuthService {
 
             // Lưu thông tin vào session
             if (nv != null) {
-                sessionService.set("userRole", nv.getVaitro());
+                sessionService.set("userRole", nv.getVaiTro());
                 sessionService.set("userName", nv.getTenNV());
             } else if (kh != null) {
                 sessionService.set("userRole", "CUSTOMER");
