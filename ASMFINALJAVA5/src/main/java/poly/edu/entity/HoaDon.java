@@ -20,9 +20,7 @@ public class HoaDon {
     @JoinColumn(name = "MaNV")
     private NhanVien nhanVien;
 
-    @ManyToOne
-    @JoinColumn(name = "MaDC")
-    private DiaChi diaChi;
+    private String diaChiJson;
 
     private String trangThai;
 
