@@ -12,7 +12,7 @@ public class NhanVien {
     private Integer maNV;
 
     private String tenNV;
-    private String vaitro;
+    private String vaiTro;
 
     @ManyToOne
     @JoinColumn(name = "UserID")
