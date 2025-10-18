@@ -50,10 +50,10 @@ public class EmployeeController {
         return "employee/NV_QLuser";
     }
 
-    @GetMapping("/import")
-    public String importStock(Model model) {
-        model.addAttribute("title", "Nhập kho");
-        model.addAttribute("role", "employee");
-        return "employee/NV_NhapKho";
-    }
+//    @GetMapping("/import")
+//    public String importStock(Model model) {
+//        model.addAttribute("title", "Nhập kho");
+//        model.addAttribute("role", "employee");
+//        return "employee/NV_NhapKho";
+//    }
 }
