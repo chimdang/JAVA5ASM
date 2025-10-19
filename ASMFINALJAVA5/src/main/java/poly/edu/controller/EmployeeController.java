@@ -36,12 +36,12 @@ public class EmployeeController {
         return "employee/NV_QLsanpham";
     }
 
-    @GetMapping("/orders")
-    public String orders(Model model) {
-        model.addAttribute("title", "Quản lý đơn hàng");
-        model.addAttribute("role", "employee");
-        return "employee/NV_QLdonhang";
-    }
+//    @GetMapping("/orders")
+//    public String orders(Model model) {
+//        model.addAttribute("title", "Quản lý đơn hàng");
+//        model.addAttribute("role", "employee");
+//        return "employee/NV_QLdonhang";
+//    }
 
     @GetMapping("/users")
     public String users(Model model) {

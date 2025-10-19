@@ -1,31 +1,39 @@
 package poly.edu.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import java.util.Date;
 
 @Entity
-@Data
 @Table(name = "HoaDon")
+@Getter @Setter
 public class HoaDon {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "MaHD")
     private Integer maHD;
 
-    @ManyToOne
+    // FK -> KhachHang(MaKH)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MaKH")
     private KhachHang khachHang;
 
-    @ManyToOne
+    // FK -> NhanVien(MaNV)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MaNV")
     private NhanVien nhanVien;
 
-    @ManyToOne
-    @JoinColumn(name = "MaDC")
-    private DiaChi diaChi;
+    // Lưu JSON địa chỉ giao hàng (đúng với DB)
+    @Lob
+    @Column(name = "DiaChiJson")
+    private String diaChiJson;
 
+    @Column(name = "TrangThai")
     private String trangThai;
 
     @Temporal(TemporalType.DATE)
+    @Column(name = "NgayMua")
     private Date ngayMua;
 }
