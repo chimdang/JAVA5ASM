@@ -1,38 +1,28 @@
-// src/main/java/poly/edu/entity/SanPham.java
 package poly.edu.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 
-@Entity @Table(name="SanPham")
-@Data @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Data
+@Table(name = "SanPham")
 public class SanPham {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="MaSP")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer maSP;
 
-    @Column(name="TenSP")
-    private String tenSP;
+    @ManyToOne
+    @JoinColumn(name = "MaDM")
+    private DanhMuc danhMuc;
 
-    @Column(name="SoLuong")
-    private Integer soLuong;
-
-    @Column(name="DonGia")
-    private Double donGia;
-
-    @Column(name="Hinh")
     private String hinh;
-
-    @Column(name="MaDM")
-    private Integer maDM;
-
-    @Column(name="PhanLoai")
+    private String tenSP;
+    private Integer soLuong;
+    private Double donGia;
     private String phanLoai;
-
-    @Column(name="MoTa", columnDefinition = "NVARCHAR(MAX)")
+    
+    @Column(columnDefinition = "nvarchar(max)")
     private String moTa;
     
-
-    @Column(name="TrangThai")
     private String trangThai;
 }

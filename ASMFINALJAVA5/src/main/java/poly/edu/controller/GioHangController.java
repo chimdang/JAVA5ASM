@@ -194,7 +194,7 @@ public class GioHangController {
         newOrder.setDiaChiJson(diaChiJsonString);
         
         newOrder.setNgayMua(new Date());
-        newOrder.setTrangThai("Chờ xác nhận");
+        newOrder.setTrangThai("Chờ Duyệt");
         HoaDon savedOrder = hoaDonDAO.save(newOrder);
         
         for (GioHang item : cartItemsToOrder) {
