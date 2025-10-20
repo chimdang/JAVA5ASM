@@ -46,10 +46,7 @@
                 max-width: 200px;
             }
         </style>
-        <form th:action="@{/customer/place-order}" method="post">
-        <div class="container-fluid px-5">
-            <h2 class="m-3">Thanh Toán</h2>
-            
+        <div class="container mt-3 px-5">
             <div class="card p-3 m-2">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5><i class="bi bi-geo-alt-fill text-danger"></i> Địa Chỉ Nhận Hàng</h5>
@@ -63,7 +60,7 @@
                 </div>
                 <div th:each="addr, iter : ${addresses}">
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="maDC" th:id="'addr' + ${addr.maDC}" th:value="${addr.maDC}" th:checked="${addr.macDinh or iter.index == 0}">
+                        <input class="form-check-input" type="radio" name="maDC" th:id="'addr' + ${addr.maDC}" th:value="${addr.maDC}" th:checked="${(addr.macDinh ?: false) or iter.index == 0}">
                         <label class="form-check-label" th:for="'addr' + ${addr.maDC}">
                             <strong th:text="${addr.tenNN} + ' | ' + ${addr.sdt}"></strong>
                             <p class="mb-0" th:text="${addr.diemGiao}"></p>
@@ -197,36 +194,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <script>
-        const addForm = document.getElementById('addAddressForm');
-        const updateForm = document.getElementById('updateAddressForm');
-
-        function showAddForm() {
-            addForm.classList.remove('d-none');
-            updateForm.classList.add('d-none');
-        }
-
-        async function editAddress(maDC) {
-            // Gọi API để lấy dữ liệu địa chỉ
-            const response = await fetch(`/customer/address/details/${maDC}`);
-            const address = await response.json();
-
-            if (address) {
-                // Điền dữ liệu vào form cập nhật
-                document.getElementById('updateMaDC').value = address.maDC;
-                document.getElementById('updateTenNN').value = address.tenNN;
-                document.getElementById('updateSdt').value = address.sdt;
-                document.getElementById('updateDiemGiao').value = address.diemGiao;
-                document.getElementById('updateMacDinh').checked = address.macDinh;
-
-                // Ẩn form thêm, hiện form sửa
-                addForm.classList.add('d-none');
-                updateForm.classList.remove('d-none');
-            }
-        }
-    </script>
     </article>
 </body>
 </html>
