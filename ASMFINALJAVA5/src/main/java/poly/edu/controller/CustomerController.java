@@ -1,6 +1,8 @@
 package poly.edu.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import poly.edu.dto.DiaChiJsonDTO;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +33,8 @@ public class CustomerController {
 	 @Autowired AuthService authService;
 		@Autowired
 	    private GioHangDAO gioHangDAO;
+		@Autowired
+		private HoaDonDAO hoaDonDAO;
 	
     @GetMapping("/index")
     public String customerIndex(Model model) {
@@ -94,13 +98,114 @@ public class CustomerController {
     public String orders(Model model) {
         model.addAttribute("title", "Đơn hàng của bạn");
         model.addAttribute("role", "customer");
+
+        try {
+            // 1. Lấy thông tin Users (tài khoản) đang đăng nhập
+            Users currentUser = authService.getCurrentUser();
+            if (currentUser == null) {
+                // Nếu chưa đăng nhập, chuyển hướng về trang login
+                return "redirect:/auth/login"; 
+            }
+
+            // 2. Từ Users, tìm thông tin KhachHang tương ứng
+            KhachHang khachHang = khachHangDAO.findByUser_UserID(currentUser.getUserID());
+
+            if (khachHang != null) {
+                // 3. Nếu tìm thấy KhachHang, tải danh sách đơn hàng của họ
+                List<HoaDon> orders = hoaDonDAO.findByKhachHangOrderByNgayMuaDesc(khachHang);
+                model.addAttribute("orders", orders);
+            } else {
+                 // Nếu không tìm thấy thông tin khách hàng (lỗi dữ liệu), báo lỗi
+                model.addAttribute("error", "Không tìm thấy thông tin khách hàng.");
+            }
+
+        try {
+            // 1. Lấy thông tin Users (tài khoản) đang đăng nhập
+            Users currentUser = authService.getCurrentUser();
+            
+            if (currentUser == null) {
+                // Nếu chưa đăng nhập, chuyển hướng về trang login
+                return "redirect:/auth/login"; 
+            }
+
+            // 2. Từ Users, tìm thông tin KhachHang (khách hàng) tương ứng
+            KhachHang khachHang = khachHangDAO.findByUser_UserID(currentUser.getUserID());
+            
+            if (khachHang != null) {
+                // 3. Nếu tìm thấy KhachHang, tải giỏ hàng của CHÍNH HỌ
+                cartItems = gioHangDAO.findByKhachHang(khachHang);
+                
+                // 4. Tính tổng tiền cho giỏ hàng đó
+                totalPrice = cartItems.stream()
+                    .mapToDouble(item -> item.getSoLuong() * item.getSanPham().getDonGia())
+                    .sum();
+            }
+            // Nếu không tìm thấy khachHang (lỗi dữ liệu), giỏ hàng sẽ là rỗng
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Báo lỗi ra view nếu có sự cố
+            model.addAttribute("error", "Không thể tải danh sách đơn hàng, vui lòng thử lại.");
+        }
+
+            model.addAttribute("error", "Không thể tải giỏ hàng, vui lòng thử lại.");
+        }
+
+        // 5. Đưa dữ liệu (dù là rỗng hay có) ra view
+        model.addAttribute("cartItems", cartItems);
+        model.addAttribute("totalPrice", totalPrice);
+        model.addAttribute("title", "Giỏ hàng");
+        model.addAttribute("role", "customer");
+        
+        return "customer/KH_GioHang";
+    }
+
+    @GetMapping("/orders")
+    public String orders(Model model) {
+        model.addAttribute("title", "Đơn hàng của bạn");
+        model.addAttribute("role", "customer");
         return "customer/KH_QLDonHang";
     }
 
-    @GetMapping("/order/detail")
-    public String orderDetail(Model model) {
+    @GetMapping("/order/detail/{maHD}") // Nhận mã hóa đơn từ URL
+    public String orderDetail(@PathVariable("maHD") Integer maHD, Model model) {
         model.addAttribute("title", "Chi tiết đơn hàng");
         model.addAttribute("role", "customer");
+
+        try {
+            // 1. Dùng maHD để tìm Hóa Đơn trong CSDL
+            // Tương đương với SELECT * FROM HoaDon WHERE MaHD = [maHD]
+            Optional<HoaDon> optionalOrder = hoaDonDAO.findById(maHD);
+
+            if (optionalOrder.isPresent()) {
+                HoaDon order = optionalOrder.get();
+
+                // 2. Kiểm tra xem người dùng có quyền xem đơn hàng này không (tùy chọn nhưng nên có)
+                Users currentUser = authService.getCurrentUser();
+                if (!order.getKhachHang().getUser().getUserID().equals(currentUser.getUserID())) {
+                     model.addAttribute("error", "Bạn không có quyền xem đơn hàng này.");
+                     return "customer/KH_CTDonHang";
+                }
+
+                // 3. Gửi đối tượng 'order' (chứa thông tin từ bảng HoaDon và list HoaDonCT) ra view
+                model.addAttribute("order", order);
+
+                // 4. Tính tổng tiền và gửi ra view
+                double totalPrice = order.getHoaDonCTs().stream()
+                    .mapToDouble(item -> item.getSoLuong() * item.getDonGia())
+                    .sum();
+                model.addAttribute("totalPrice", totalPrice);
+
+            } else {
+                // Nếu không tìm thấy hóa đơn (ví dụ URL là /customer/order/detail/999)
+                model.addAttribute("error", "Không tìm thấy đơn hàng #" + maHD);
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Lỗi khi tải chi tiết đơn hàng.");
+            e.printStackTrace();
+        }
+
+        // 5. Trả về file view để hiển thị
         return "customer/KH_CTDonHang";
     }
 

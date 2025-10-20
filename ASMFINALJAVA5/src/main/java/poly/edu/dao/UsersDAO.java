@@ -6,6 +6,5 @@ import java.util.*;
 
 public interface UsersDAO extends JpaRepository<Users, Integer> {
 	Users findByMail(String mail);
-	List<Users> findByMailContaining(String keyword);
 }
 
