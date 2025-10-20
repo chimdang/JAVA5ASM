@@ -63,7 +63,7 @@
                 </div>
                 <div th:each="addr, iter : ${addresses}">
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="maDC" th:id="'addr' + ${addr.maDC}" th:value="${addr.maDC}" th:checked="${(addr.macDinh ?: false) or iter.index == 0}">
+                        <input class="form-check-input" type="radio" name="maDC" th:id="'addr' + ${addr.maDC}" th:value="${addr.maDC}" th:checked="${addr.macDinh or iter.index == 0}">
                         <label class="form-check-label" th:for="'addr' + ${addr.maDC}">
                             <strong th:text="${addr.tenNN} + ' | ' + ${addr.sdt}"></strong>
                             <p class="mb-0" th:text="${addr.diemGiao}"></p>
@@ -124,7 +124,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addAddressForm" th:action="@{/customer/address/add}" method="post" th:object="${newAddress}">
+                    <form id="addAddressForm" th:action="@{/customer/add-addressmn}" method="post" th:object="${newAddress}">
                          <h5>Thêm địa chỉ mới</h5>
                          <div class="row g-3">
                             <div class="col-md-6">
@@ -149,7 +149,7 @@
                          <button type="submit" class="btn btn-primary mt-3">Thêm mới</button>
                     </form>
                     <hr>
-                    <form id="updateAddressForm" th:action="@{/customer/address/update}" method="post" class="d-none">
+                    <form id="updateAddressForm" th:action="@{/customer/update-addressmn}" method="post" class="d-none">
                         <h5>Cập nhật địa chỉ</h5>
                         <input type="hidden" id="updateMaDC" name="maDC">
                         <div class="row g-3">
@@ -186,7 +186,10 @@
                                 </td>
                                 <td class="text-end">
                                     <button class="btn btn-sm btn-outline-warning" th:onclick="editAddress([[${addr.maDC}]])">Sửa</button>
-                                    <a th:href="@{'/customer/address/delete/' + ${addr.maDC}}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc muốn xóa địa chỉ này?')">Xóa</a>
+                                    <form th:action="@{/customer/delete-addressmn}" method="post" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa địa chỉ này?')">
+        <input type="hidden" name="addressId" th:value="${addr.maDC}" />
+        <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+    </form>
                                 </td>
                             </tr>
                         </tbody>

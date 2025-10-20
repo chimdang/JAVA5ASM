@@ -20,7 +20,6 @@ public class SanPham {
     private Integer soLuong;
     private Double donGia;
     private String phanLoai;
-    
-    @Column(columnDefinition = "nvarchar(max)")
     private String moTa;
+    private String trangThai;
 }

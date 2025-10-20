@@ -14,7 +14,7 @@ public class KhachHang {
     private String tenKH;
     private String sdt;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "UserID")
     private Users user;
 }

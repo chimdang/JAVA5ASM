@@ -71,7 +71,7 @@ public class AuthController {
 
         // Kiểm tra và redirect dựa trên vai trò
         if (authService.isAdmin()) {
-            return "redirect:/employee/dashboard";
+            return "redirect:/employee/thongke";
         } else if (authService.isEmployee()) {
             return "redirect:/employee/products";
         } else if (authService.isCustomer()) {          
@@ -140,7 +140,7 @@ public class AuthController {
 
     private String redirectByRole() {
     	 if (authService.isAdmin()) {
-             return "redirect:/employee/dashboard";
+             return "redirect:/employee/thongke";
          } else if (authService.isEmployee()) {
              return "redirect:/employee/products";
          } else if (authService.isCustomer()) {          
