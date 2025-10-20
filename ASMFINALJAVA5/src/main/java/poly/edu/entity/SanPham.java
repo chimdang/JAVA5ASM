@@ -23,3 +23,6 @@ public class SanPham {
     private String moTa;
     private String trangThai;
 }
+    
+    private String trangThai;
+}
