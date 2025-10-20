@@ -8,4 +8,3 @@ public interface GioHangDAO extends JpaRepository<GioHang, Integer> {
 	List<GioHang> findByKhachHang(KhachHang khachHang);
     GioHang findByKhachHangAndSanPham(KhachHang khachHang, SanPham sanPham);
 }
-

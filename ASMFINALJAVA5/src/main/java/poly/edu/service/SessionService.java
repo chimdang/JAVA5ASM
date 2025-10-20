@@ -70,5 +70,4 @@ public class SessionService {
         remove("userRole");
         remove("userName");
     }
-    
 }

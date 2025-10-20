@@ -29,6 +29,8 @@ public class CustomerController {
 	 @Autowired SessionService sessionService;
 	 @Autowired ParamService paramService;
 	 @Autowired AuthService authService;
+		@Autowired
+	    private GioHangDAO gioHangDAO;
 	
     @GetMapping("/index")
     public String customerIndex(Model model) {
@@ -46,8 +48,45 @@ public class CustomerController {
 
     @GetMapping("/cart")
     public String cart(Model model) {
+        // Khởi tạo danh sách rỗng và tổng tiền bằng 0
+        List<GioHang> cartItems = List.of(); 
+        double totalPrice = 0;
+
+        try {
+            // 1. Lấy thông tin Users (tài khoản) đang đăng nhập
+            Users currentUser = authService.getCurrentUser();
+            
+            if (currentUser == null) {
+                // Nếu chưa đăng nhập, chuyển hướng về trang login
+                return "redirect:/auth/login"; 
+            }
+
+            // 2. Từ Users, tìm thông tin KhachHang (khách hàng) tương ứng
+            KhachHang khachHang = khachHangDAO.findByUser_UserID(currentUser.getUserID());
+            
+            if (khachHang != null) {
+                // 3. Nếu tìm thấy KhachHang, tải giỏ hàng của CHÍNH HỌ
+                cartItems = gioHangDAO.findByKhachHang(khachHang);
+                
+                // 4. Tính tổng tiền cho giỏ hàng đó
+                totalPrice = cartItems.stream()
+                    .mapToDouble(item -> item.getSoLuong() * item.getSanPham().getDonGia())
+                    .sum();
+            }
+            // Nếu không tìm thấy khachHang (lỗi dữ liệu), giỏ hàng sẽ là rỗng
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Báo lỗi ra view nếu có sự cố
+            model.addAttribute("error", "Không thể tải giỏ hàng, vui lòng thử lại.");
+        }
+
+        // 5. Đưa dữ liệu (dù là rỗng hay có) ra view
+        model.addAttribute("cartItems", cartItems);
+        model.addAttribute("totalPrice", totalPrice);
         model.addAttribute("title", "Giỏ hàng");
         model.addAttribute("role", "customer");
+        
         return "customer/KH_GioHang";
     }
 
@@ -63,13 +102,6 @@ public class CustomerController {
         model.addAttribute("title", "Chi tiết đơn hàng");
         model.addAttribute("role", "customer");
         return "customer/KH_CTDonHang";
-    }
-
-    @GetMapping("/checkout")
-    public String checkout(Model model) {
-        model.addAttribute("title", "Đặt hàng");
-        model.addAttribute("role", "customer");
-        return "customer/KH_DatHang";
     }
 
     @GetMapping("/profile")

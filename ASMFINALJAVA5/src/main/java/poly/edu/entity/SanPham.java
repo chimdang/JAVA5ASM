@@ -31,6 +31,7 @@ public class SanPham {
 
     @Column(name="MoTa", columnDefinition = "NVARCHAR(MAX)")
     private String moTa;
+    
 
     @Column(name="TrangThai")
     private String trangThai;
