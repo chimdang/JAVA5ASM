@@ -37,6 +37,7 @@ public class CustomerController {
 	 @Autowired AuthService authService;
      @Autowired private GioHangDAO gioHangDAO;
      @Autowired private SanPhamDAO sanPhamDAO;
+     @Autowired private DanhMucDAO danhMucDAO;
      @Autowired private HoaDonDAO hoaDonDAO;
      @Autowired private HoaDonCTDAO hoaDonCTDAO;
      @Autowired private HttpSession session;
@@ -58,14 +59,36 @@ public class CustomerController {
     
     @GetMapping("/index")
     public String customerIndex(Model model) {
+        // Load danh sách sản phẩm từ database
+        List<SanPham> danhSachSanPham = sanPhamDAO.findAll();
+        model.addAttribute("sanPhams", danhSachSanPham);
+        
+        // THÊM: Load danh sách danh mục
+        List<DanhMuc> danhSachDanhMuc = danhMucDAO.findAll();
+        model.addAttribute("danhMucs", danhSachDanhMuc);
+        
         model.addAttribute("title", "Pine Shop - Trang chủ");
         model.addAttribute("role", "customer");
         return "customer/KH_index";
     }
     
     @GetMapping("/detailProduct")
-    public String detailProduct(Model model) {
-        model.addAttribute("title", "Chi tiết đơn hàng");
+    public String detailProduct(@RequestParam(required = false) Integer maSP, Model model) {
+        if (maSP != null) {
+            Optional<SanPham> sanPhamOpt = sanPhamDAO.findById(maSP);
+            if (sanPhamOpt.isPresent()) {
+                SanPham sanPham = sanPhamOpt.get();
+                model.addAttribute("sanPham", sanPham);
+            } else {
+                // Nếu không tìm thấy sản phẩm, redirect về trang chủ
+                return "redirect:/customer/index";
+            }
+        } else {
+            // Nếu không có maSP, redirect về trang chủ
+            return "redirect:/customer/index";
+        }
+        
+        model.addAttribute("title", "Chi tiết sản phẩm");
         model.addAttribute("role", "customer");
         return "customer/KH_detail-product";
     }
@@ -522,4 +545,39 @@ public class CustomerController {
         }
         return "redirect:/customer/checkout";
     }
+    
+ // Thêm vào cuối CustomerController.java (trước dấu } cuối cùng)
+
+ // -----------------------------------------------------------------------------------
+ // VII. QUẢN LÝ DANH MỤC VÀ LỌC SẢN PHẨM
+ // -----------------------------------------------------------------------------------
+
+ /**
+  * API: Lấy tất cả danh mục
+  */
+ @GetMapping("/categories")
+ @ResponseBody
+ public List<DanhMuc> getAllCategories() {
+     return danhMucDAO.findAll();
+ }
+
+ /**
+  * API: Lấy tất cả sản phẩm
+  */
+ @GetMapping("/products/all")
+ @ResponseBody
+ public List<SanPham> getAllProducts() {
+     return sanPhamDAO.findAll();
+ }
+
+ /**
+  * API: Lấy sản phẩm theo danh mục
+  * @GetMapping("/products/by-category/{maDM}")
+ @ResponseBody
+ public List<SanPham> getProductsByCategory(@PathVariable("maDM") Integer maDM) {
+     return sanPhamDAO.findByDanhMuc_MaDM(maDM);
+ }
+  */
+ 
 }
+
