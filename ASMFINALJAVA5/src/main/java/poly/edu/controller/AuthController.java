@@ -8,8 +8,10 @@ import jakarta.servlet.http.*;
 
 import poly.edu.entity.Users;
 import poly.edu.entity.KhachHang;
+import poly.edu.entity.NhanVien;
 import poly.edu.dao.UsersDAO;
 import poly.edu.dao.KhachHangDAO;
+import poly.edu.dao.NhanVienDAO;  // <-- THÊM
 
 import poly.edu.service.AuthService;
 import poly.edu.service.CookieService;
@@ -19,9 +21,9 @@ import poly.edu.service.ParamService;
 @RequestMapping("/auth")
 public class AuthController {
 
-    
     @Autowired UsersDAO usersDAO;
     @Autowired KhachHangDAO khachHangDAO;
+    @Autowired NhanVienDAO nhanVienDAO;   // <-- THÊM
     @Autowired CookieService cookieService;
     @Autowired ParamService paramService;
     @Autowired AuthService authService;
@@ -46,7 +48,7 @@ public class AuthController {
                     model.addAttribute("rememberChecked", true);
                 }
             } catch (Exception e) {
-                // Không cần xử lý
+                // bỏ qua
             }
         }
 
@@ -56,9 +58,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(Model model) {
-    	
-    	String mail = paramService.getString("mail", "");
+    public String login(Model model, HttpSession session) {   // <-- NHẬN SESSION
+        String mail = paramService.getString("mail", "");
         String pass = paramService.getString("pass", "");
         boolean remember = paramService.getBoolean("remember", false);
 
@@ -69,27 +70,40 @@ public class AuthController {
             return "auth/login";
         }
 
-        // Kiểm tra và redirect dựa trên vai trò
+        // ---- SAU KHI LOGIN OK: LƯU MaNV VÀO SESSION (nếu là Admin/Nhân viên) ----
+        if (authService.isAdmin() || authService.isEmployee()) {
+            Users u = authService.getCurrentUser();           // user hiện tại
+            if (u == null) u = usersDAO.findByMail(mail);     // fallback
+            if (u != null) {
+                NhanVien nv = nhanVienDAO.findByUser_UserID(u.getUserID());
+                if (nv != null) {
+                    session.setAttribute("maNV", nv.getMaNV());   // <<-- QUAN TRỌNG
+                    session.setAttribute("tenNV", nv.getTenNV()); // optional: hiển thị chào
+                    session.setAttribute("email", u.getMail());   // optional
+                }
+            }
+        }
+        // -------------------------------------------------------------------------
+
+        // Redirect theo vai trò
         if (authService.isAdmin()) {
             return "redirect:/employee/dashboard";
         } else if (authService.isEmployee()) {
             return "redirect:/employee/products";
-        } else if (authService.isCustomer()) {          
+        } else if (authService.isCustomer()) {
             return "redirect:/customer/index";
         }
-        
         return "redirect:/customer/index";
     }
-    
-   
+
     @PostMapping("/register")
     public String register(Model model) {
-    	String mail = paramService.getString("mail", "");
+        String mail = paramService.getString("mail", "");
         String pass = paramService.getString("pass", "");
         String fullname = paramService.getString("fullname", "");
         String phone = paramService.getString("phone", "");
         boolean remember = paramService.getBoolean("remember", false);
-    	
+
         // Kiểm tra email đã tồn tại chưa
         if (usersDAO.findByMail(mail) != null) {
             model.addAttribute("error", "Email đã tồn tại!");
@@ -97,68 +111,65 @@ public class AuthController {
         }
 
         try {
-            // 1. Tạo tài khoản Users
+            // 1. Tạo Users
             Users user = new Users();
             user.setMail(mail);
             user.setPass(pass);
             Users savedUser = usersDAO.save(user);
 
-            // 2. Tạo thông tin KhachHang
+            // 2. Tạo KhachHang
             KhachHang khachHang = new KhachHang();
             khachHang.setTenKH(fullname);
             khachHang.setSdt(phone);
             khachHang.setUser(savedUser);
-            
             khachHangDAO.save(khachHang);
-            // 3. Tự động đăng nhập sau khi đăng ký
+
+            // 3. Auto login
             authService.login(mail, pass, remember);
-            
-            model.addAttribute("message", "Đăng ký thành công!");          
+
+            model.addAttribute("message", "Đăng ký thành công!");
             return redirectByRole();
-            
         } catch (Exception e) {
             model.addAttribute("error", "Đăng ký thất bại! Vui lòng thử lại.");
         }
-
         return "auth/login";
     }
-    
-    @GetMapping("/logout")
-    public String logout(HttpServletResponse response) {
 
-        // 1. Xóa session
+    @GetMapping("/logout")
+    public String logout(HttpServletResponse response, HttpSession session) { // <-- NHẬN SESSION
         authService.logout();
-        
-        // 2. Xóa cookie rememberMe
+
+        // Xóa cookie rememberMe
         Cookie cookie = new Cookie("rememberMe", null);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(0);
         response.addCookie(cookie);
+
         return "redirect:/auth/login?logout=true";
     }
 
     private String redirectByRole() {
-    	 if (authService.isAdmin()) {
-             return "redirect:/employee/dashboard";
-         } else if (authService.isEmployee()) {
-             return "redirect:/employee/products";
-         } else if (authService.isCustomer()) {          
-             return "redirect:/customer/index";
-         }
+        if (authService.isAdmin()) {
+            return "redirect:/employee/thongke";
+        } else if (authService.isEmployee()) {
+            return "redirect:/employee/products";
+        } else if (authService.isCustomer()) {
+            return "redirect:/customer/index";
+        }
         return "redirect:/customer/index";
     }
-    
+
     @PostMapping("/forgot-password")
     public String forgotPassword(@RequestParam String email, Model model) {
         String result = authService.forgotPassword(email);
-        
         if (result.equals("OK")) {
             model.addAttribute("message", "Mật khẩu mới đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.");
         } else {
             model.addAttribute("error", result);
         }
-        
         return "auth/login";
+        
     }
+    
 }

@@ -100,7 +100,7 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>Hình</th>
-                                    <th>Mã SP</th>
+                                    
                                     <th>Tên sản phẩm</th>
                                     <th class="text-end">SL tồn</th>
                                     <th style="width:280px">Nhập kho</th>
@@ -117,7 +117,7 @@
                                              style="width:48px;height:48px;object-fit:cover;border-radius:8px;"
                                              onerror="this.src='/images/no-image.png'">
                                     </td>
-                                    <td th:text="${sp.maSP}">1</td>
+                                    
                                     <td th:text="${sp.tenSP}">Tên sản phẩm</td>
                                     <td class="text-end" th:text="${sp.soLuong==null?0:sp.soLuong}">0</td>
                                     <td>
@@ -144,7 +144,7 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th><i class="bi bi-hash me-2"></i>Mã nhập kho</th>
-                                    <th><i class="bi bi-upc me-2"></i>Mã sản phẩm</th>
+                                    
                                     <th><i class="bi bi-box-seam me-2"></i>Tên sản phẩm</th>
                                     <th><i class="bi bi-123 me-2"></i>Số lượng</th>
                                     <th><i class="bi bi-calendar-event me-2"></i>Ngày nhập</th>
@@ -156,7 +156,7 @@
                                 </tr>
                                 <tr th:each="nk : ${listNK}">
                                     <td th:text="${nk.maNK}"></td>
-                                    <td th:text="${nk.sanPham != null ? nk.sanPham.maSP : ''}"></td>
+                                    
                                     <td th:text="${nk.sanPham != null ? nk.sanPham.tenSP : ''}"></td>
                                     <td th:text="${nk.soLuong}"></td>
                                     <td th:text="${#temporals.format(nk.ngayNK,'dd/MM/yyyy HH:mm')}"></td>

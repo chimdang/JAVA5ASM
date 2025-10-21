@@ -3,22 +3,31 @@ package poly.edu.controller;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import jakarta.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import poly.edu.dao.HoaDonDAO;
+import poly.edu.dao.HoaDonCTDAO;
+import poly.edu.dao.SanPhamDAO;
 import poly.edu.entity.HoaDon;
+import poly.edu.entity.HoaDonCT;
+import poly.edu.entity.SanPham;
 
 import java.sql.Date;
 import java.util.*;
 
 /**
- * Quản lý đơn hàng (hiển thị 3 tab + duyệt/từ chối)
- * Route gốc: /employee/orders
+ * Quản lý đơn hàng (hiển thị & thao tác)
+ * Route: /employee/orders
+ * 
+ * LOGIC SỐ LƯỢNG:
+ * - Khi khách đặt hàng: Số lượng ĐÃ BỊ TRỪ → "Chờ duyệt"
+ * - Khi admin DUYỆT: Không đụng số lượng → "Đang giao"
+ * - Khi admin TỪ CHỐI: HOÀN LẠI số lượng → "Đã từ chối"
  */
 @Controller
 @RequestMapping("/employee/orders")
@@ -27,13 +36,16 @@ public class QlDonHangController {
     @Autowired
     private HoaDonDAO hoaDonDAO;
 
+    @Autowired
+    private HoaDonCTDAO hoaDonCTDAO;
+
+    @Autowired
+    private SanPhamDAO sanPhamDAO;
+
     @PersistenceContext
     private EntityManager em;
 
-    /**
-     * Lấy danh sách đơn theo trạng thái + tổng tiền.
-     * Dựa trên bảng HoaDon, HoaDonCT, KhachHang để tính TongTien và SDT.
-     */
+    /** Lấy danh sách đơn theo trạng thái + tổng tiền (HoaDon, HoaDonCT, KhachHang) */
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> fetchOrdersByStatus(String status) {
         String sql = """
@@ -54,36 +66,24 @@ public class QlDonHangController {
         """;
 
         var rows = em.createNativeQuery(sql)
-                     .setParameter("st", status)
-                     .getResultList();
+                .setParameter("st", status)
+                .getResultList();
 
-        List<Map<String, Object>> out = new ArrayList<>();
+        List<Map<String,Object>> out = new ArrayList<>();
         for (Object rObj : rows) {
             Object[] r = (Object[]) rObj;
+            Integer maHD     = (Integer) r[0];
+            Date ngayMua     = (Date)   r[1];
+            Integer maNV     = (Integer) r[2];
+            String trangThai = (String) r[3];
+            String sdt       = (String) r[4];
+            Number tong      = (Number) r[5];
 
-            // Cột
-            Integer maHD      = (Integer) r[0];
-            Date ngayMua      = (Date)   r[1];
-            Object maNVObj    = r[2];                 // có thể Number hoặc String
-            String trangThai  = (String) r[3];
-            String sdt        = (String) r[4];
-            Number tong       = (Number) r[5];
-
-            // Chuẩn hóa hiển thị
-            String maNVStr;
-            if (maNVObj == null) {
-                maNVStr = "";
-            } else if (maNVObj instanceof Number num) {
-                maNVStr = String.format("NV%04d", num.intValue());
-            } else {
-                maNVStr = maNVObj.toString();
-            }
-
-            Map<String, Object> m = new HashMap<>();
+            Map<String,Object> m = new HashMap<>();
             m.put("maHD", maHD);
             m.put("maHDStr", String.format("HD%04d", maHD));
             m.put("ngayMua", ngayMua);
-            m.put("maNV", maNVStr);
+            m.put("maNV", (maNV == null) ? "" : String.format("NV%04d", maNV));
             m.put("trangThai", trangThai);
             m.put("sdt", sdt);
             m.put("tongTien", (tong == null) ? 0D : tong.doubleValue());
@@ -94,81 +94,133 @@ public class QlDonHangController {
 
     /* ===================== VIEW ===================== */
 
-    // Hiển thị 3 tab. Tab active lấy từ ?tab=cho|duyet|tuchoi (mặc định: cho)
     @GetMapping
-    public String view(@RequestParam(name = "tab", defaultValue = "cho") String tab,
-                       Model model) {
+    public String view(@RequestParam(value = "tab", defaultValue = "cho") String tab, Model model) {
         model.addAttribute("choDuyet", fetchOrdersByStatus("Chờ duyệt"));
-        model.addAttribute("daDuyet",  fetchOrdersByStatus("Đang giao"));   // map sang tab "Đã Duyệt"
+        model.addAttribute("daDuyet",  fetchOrdersByStatus("Đang giao"));
         model.addAttribute("tuChoi",   fetchOrdersByStatus("Đã từ chối"));
         model.addAttribute("activeTab", tab);
-        return "employee/NV_QLdonhang";  // đúng với file HTML bạn đang dùng
+        return "employee/NV_QLdonhang";
     }
 
     /* ===================== ACTIONS ===================== */
 
-    // Duyệt: chuyển "Đang giao" rồi nhảy sang tab ĐÃ DUYỆT
-    @PostMapping("/{id}/approve")
-    @Transactional
-    public String approve1(@PathVariable("id") Integer id, RedirectAttributes ra) {
-        updateStatus(id, "Đang giao");
-        ra.addAttribute("tab", "duyet");
-        return "redirect:/employee/orders";
-    }
-
-    // Từ chối: chuyển "Đã từ chối" rồi nhảy sang tab ĐÃ TỪ CHỐI
-    @PostMapping("/{id}/reject")
-    @Transactional
-    public String reject1(@PathVariable("id") Integer id, RedirectAttributes ra) {
-        updateStatus(id, "Đã từ chối");
-        ra.addAttribute("tab", "tuchoi");
-        return "redirect:/employee/orders";
-    }
-
-    /* ====== (Tùy chọn) Giữ thêm route cũ nếu trước đó bạn đã wiring /approve/{id}, /reject/{id} ====== */
-
+    /**
+     * DUYỆT ĐƠN: Chuyển từ "Chờ duyệt" → "Đang giao"
+     * KHÔNG TRỪ SỐ LƯỢNG vì đã trừ lúc khách đặt hàng rồi
+     */
     @PostMapping("/approve/{id}")
     @Transactional
-    public String approve2(@PathVariable("id") Integer id, RedirectAttributes ra) {
-        updateStatus(id, "Đang giao");
-        ra.addAttribute("tab", "duyet");
-        return "redirect:/employee/orders";
+    public String approve(@PathVariable("id") Integer id, HttpSession session) {
+        Integer maNV = getMaNVFromSession(session);
+        var hd = hoaDonDAO.findById(id).orElse(null);
+        
+        if (hd != null && "Chờ duyệt".equals(hd.getTrangThai())) {
+            System.out.println("=== DUYỆT ĐƠN HD " + id + " ===");
+            System.out.println(">>> Chỉ cập nhật trạng thái, KHÔNG trừ số lượng (đã trừ lúc đặt hàng)");
+            
+            // CHỈ cập nhật trạng thái, KHÔNG đụng số lượng
+            hd.setTrangThai("Đang giao");
+            assignNhanVien(hd, maNV);
+            hoaDonDAO.save(hd);
+            
+            System.out.println("=== HOÀN TẤT DUYỆT ===");
+        }
+        
+        return "redirect:/employee/orders?tab=duyet";
     }
 
+    /**
+     * TỪ CHỐI ĐƠN: Chuyển từ "Chờ duyệt" → "Đã từ chối"
+     * HOÀN LẠI SỐ LƯỢNG vì đã trừ lúc đặt hàng
+     */
     @PostMapping("/reject/{id}")
     @Transactional
-    public String reject2(@PathVariable("id") Integer id, RedirectAttributes ra) {
-        updateStatus(id, "Đã từ chối");
-        ra.addAttribute("tab", "tuchoi");
-        return "redirect:/employee/orders";
-    }
-
-    /* ====== (Tùy chọn) Endpoint JSON để gọi AJAX nếu bạn không muốn tạo <form> trong HTML ====== */
-
-    @PostMapping("/{id}/approve.json")
-    @ResponseBody
-    @Transactional
-    public Map<String, Object> approveJson(@PathVariable("id") Integer id) {
-        boolean ok = updateStatus(id, "Đang giao");
-        return Map.of("ok", ok, "id", id, "nextTab", "duyet");
-    }
-
-    @PostMapping("/{id}/reject.json")
-    @ResponseBody
-    @Transactional
-    public Map<String, Object> rejectJson(@PathVariable("id") Integer id) {
-        boolean ok = updateStatus(id, "Đã từ chối");
-        return Map.of("ok", ok, "id", id, "nextTab", "tuchoi");
+    public String reject(@PathVariable("id") Integer id, HttpSession session) {
+        Integer maNV = getMaNVFromSession(session);
+        var hd = hoaDonDAO.findById(id).orElse(null);
+        
+        if (hd != null) {
+            String trangThaiCu = hd.getTrangThai();
+            System.out.println("=== TỪ CHỐI ĐƠN HD " + id + " ===");
+            System.out.println("Trạng thái cũ: " + trangThaiCu);
+            
+            // Lấy chi tiết đơn hàng từ DB
+            List<HoaDonCT> chiTietList = em.createQuery(
+                "SELECT ct FROM HoaDonCT ct WHERE ct.hoaDon.maHD = :maHD", HoaDonCT.class)
+                .setParameter("maHD", id)
+                .getResultList();
+            
+            System.out.println("Số lượng chi tiết: " + chiTietList.size());
+            
+            // HOÀN LẠI số lượng nếu đơn ở trạng thái "Chờ duyệt" hoặc "Đang giao"
+            // (Không hoàn nếu đã từ chối trước đó rồi)
+            if ("Chờ duyệt".equals(trangThaiCu) || "Đang giao".equals(trangThaiCu)) {
+                System.out.println(">>> HOÀN LẠI SỐ LƯỢNG SẢN PHẨM");
+                
+                for (HoaDonCT ct : chiTietList) {
+                    Integer maSP = ct.getSanPham().getMaSP();
+                    Integer soLuongMua = ct.getSoLuong();
+                    
+                    SanPham sp = sanPhamDAO.findById(maSP).orElse(null);
+                    if (sp != null) {
+                        int soLuongCu = sp.getSoLuong();
+                        int soLuongMoi = soLuongCu + soLuongMua;
+                        
+                        System.out.println("SP " + maSP + ": " + soLuongCu + " + " + soLuongMua + " = " + soLuongMoi);
+                        
+                        sp.setSoLuong(soLuongMoi);
+                        sanPhamDAO.save(sp);
+                    }
+                }
+            } else {
+                System.out.println(">>> Đơn đã từ chối trước đó -> KHÔNG hoàn lại");
+            }
+            
+            // Cập nhật trạng thái
+            hd.setTrangThai("Đã từ chối");
+            assignNhanVien(hd, maNV);
+            hoaDonDAO.save(hd);
+            
+            System.out.println("=== HOÀN TẤT TỪ CHỐI ===");
+        }
+        
+        return "redirect:/employee/orders?tab=tuchoi";
     }
 
     /* ===================== HELPERS ===================== */
 
-    /** Cập nhật trạng thái an toàn, không phụ thuộc DAO custom. */
-    private boolean updateStatus(Integer id, String status) {
-        HoaDon hd = hoaDonDAO.findById(id).orElse(null);
-        if (hd == null) return false;
-        hd.setTrangThai(status);
-        hoaDonDAO.save(hd);
-        return true;
+    /** Lấy maNV đang đăng nhập từ session */
+    private Integer getMaNVFromSession(HttpSession session) {
+        Object s = session.getAttribute("maNV");
+        if (s instanceof Integer) return (Integer) s;
+        if (s instanceof String) {
+            String str = (String) s;
+            if (str.matches("\\d+")) return Integer.valueOf(str);
+        }
+        return null;
+    }
+
+    /**
+     * Gán nhân viên xử lý vào hóa đơn
+     */
+    private void assignNhanVien(HoaDon hd, Integer maNV) {
+        if (hd == null || maNV == null) return;
+
+        try {
+            var m = hd.getClass().getMethod("setMaNV", Integer.class);
+            m.invoke(hd, maNV);
+            return;
+        } catch (NoSuchMethodException ignore) {
+        } catch (Exception e) {
+        }
+
+        try {
+            Class<?> nvClass = Class.forName("poly.edu.entity.NhanVien");
+            Object nvRef = em.getReference(nvClass, maNV);
+            var m2 = hd.getClass().getMethod("setNhanVien", nvClass);
+            m2.invoke(hd, nvRef);
+        } catch (Exception e) {
+        }
     }
 }

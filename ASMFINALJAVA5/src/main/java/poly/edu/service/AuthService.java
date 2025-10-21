@@ -63,7 +63,7 @@ public class AuthService {
         session.invalidate();
     }
 
-    // Tự động đăng nhập từ cookie
+ // Trong AuthService.java
     public boolean autoLoginFromCookie() {
         // Nếu đã có user trong session thì không cần auto login
         if (sessionService.get("user") != null) {

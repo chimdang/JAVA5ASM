@@ -1,9 +1,12 @@
 package poly.edu.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import poly.edu.dto.DiaChiJsonDTO;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,23 +32,84 @@ public class CustomerController {
 	 @Autowired SessionService sessionService;
 	 @Autowired ParamService paramService;
 	 @Autowired AuthService authService;
-		@Autowired
-	    private GioHangDAO gioHangDAO;
+	 @Autowired private GioHangDAO gioHangDAO;
+	 @Autowired private HoaDonDAO hoaDonDAO;
+	 @Autowired private HoaDonCTDAO hoaDonCTDAO;
+	 @Autowired private SanPhamDAO sanPhamDAO;
+	 @Autowired private DanhMucDAO danhMucDAO;
 	
-    @GetMapping("/index")
-    public String customerIndex(Model model) {
-        model.addAttribute("title", "Pine Shop - Trang chủ");
-        model.addAttribute("role", "customer");
-        return "customer/KH_index";
-    }
-    
-    @GetMapping("/detailProduct")
-    public String detailProduct(Model model) {
-        model.addAttribute("title", "Chi tiết đơn hàng");
-        model.addAttribute("role", "customer");
-        return "customer/KH_detail-product";
-    }
-
+	 
+	
+//    @GetMapping("/index")
+//    public String customerIndex(Model model) {
+//        model.addAttribute("title", "Pine Shop - Trang chủ");
+//        model.addAttribute("role", "customer");
+//        return "customer/KH_index";
+//    }
+//    
+//    @GetMapping("/detailProduct")
+//    public String detailProduct(Model model) {
+//        model.addAttribute("title", "Chi tiết đơn hàng");
+//        model.addAttribute("role", "customer");
+//        return "customer/KH_detail-product";
+//    }
+	 @GetMapping("/index")
+	 public String customerIndex(Model model) {
+	     // Load danh sách sản phẩm từ database
+	     List<SanPham> danhSachSanPham = sanPhamDAO.findAll();
+	     model.addAttribute("sanPhams", danhSachSanPham);
+	     
+	     // THÊM: Load danh sách danh mục
+	     List<DanhMuc> danhSachDanhMuc = danhMucDAO.findAll();
+	     model.addAttribute("danhMucs", danhSachDanhMuc);
+	     
+	     model.addAttribute("title", "Pine Shop - Trang chủ");
+	     model.addAttribute("role", "customer");
+	     return "customer/KH_index";
+	 }
+		    
+		    @GetMapping("/detailProduct")
+		    public String detailProduct(@RequestParam(required = false) Integer maSP, Model model) {
+		        if (maSP != null) {
+		            Optional<SanPham> sanPhamOpt = sanPhamDAO.findById(maSP);
+		            if (sanPhamOpt.isPresent()) {
+		                SanPham sanPham = sanPhamOpt.get();
+		                model.addAttribute("sanPham", sanPham);
+		            } else {
+		                // Nếu không tìm thấy sản phẩm, redirect về trang chủ
+		                return "redirect:/customer/index";
+		            }
+		        } else {
+		            // Nếu không có maSP, redirect về trang chủ
+		            return "redirect:/customer/index";
+		        }
+		        
+		        model.addAttribute("title", "Chi tiết sản phẩm");
+		        model.addAttribute("role", "customer");
+		        return "customer/KH_detail-product";
+		    }
+	
+		    @ModelAttribute("cartItemCount")
+		    public int getCartItemCount() {
+		        try {
+		            Users currentUser = authService.getCurrentUser();
+		            if (currentUser == null) {
+		                return 0;
+		            }
+		            
+		            KhachHang khachHang = khachHangDAO.findByUser_UserID(currentUser.getUserID());
+		            if (khachHang == null) {
+		                return 0;
+		            }
+		            
+		            List<GioHang> cartItems = gioHangDAO.findByKhachHang(khachHang);
+		            return cartItems.stream().mapToInt(GioHang::getSoLuong).sum();
+		            
+		        } catch (Exception e) {
+		            // Log lỗi nếu cần
+		            return 0;
+		        }
+		    }
     @GetMapping("/cart")
     public String cart(Model model) {
         // Khởi tạo danh sách rỗng và tổng tiền bằng 0
@@ -94,13 +158,87 @@ public class CustomerController {
     public String orders(Model model) {
         model.addAttribute("title", "Đơn hàng của bạn");
         model.addAttribute("role", "customer");
+
+        try {
+            // 1. Lấy thông tin Users (tài khoản) đang đăng nhập
+            Users currentUser = authService.getCurrentUser();
+            if (currentUser == null) {
+                // Nếu chưa đăng nhập, chuyển hướng về trang login
+                return "redirect:/auth/login"; 
+            }
+
+            // 2. Từ Users, tìm thông tin KhachHang tương ứng
+            KhachHang khachHang = khachHangDAO.findByUser_UserID(currentUser.getUserID());
+
+            if (khachHang != null) {
+                // 3. Nếu tìm thấy KhachHang, tải danh sách đơn hàng của họ
+                List<HoaDon> orders = hoaDonDAO.findByKhachHangOrderByNgayMuaDesc(khachHang);
+                model.addAttribute("orders", orders);
+            } else {
+                 // Nếu không tìm thấy thông tin khách hàng (lỗi dữ liệu), báo lỗi
+                model.addAttribute("error", "Không tìm thấy thông tin khách hàng.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Báo lỗi ra view nếu có sự cố
+            model.addAttribute("error", "Không thể tải danh sách đơn hàng, vui lòng thử lại.");
+        }
+
         return "customer/KH_QLDonHang";
     }
 
-    @GetMapping("/order/detail")
-    public String orderDetail(Model model) {
+    @GetMapping("/order/detail/{maHD}")
+    public String orderDetail(@PathVariable("maHD") Integer maHD, Model model) {
         model.addAttribute("title", "Chi tiết đơn hàng");
         model.addAttribute("role", "customer");
+
+        try {
+            Optional<HoaDon> optionalOrder = hoaDonDAO.findById(maHD);
+
+            if (optionalOrder.isPresent()) {
+                HoaDon order = optionalOrder.get();
+
+                // KIỂM TRA QUYỀN (đã có)
+                Users currentUser = authService.getCurrentUser();
+                if (!order.getKhachHang().getUser().getUserID().equals(currentUser.getUserID())) {
+                     model.addAttribute("error", "Bạn không có quyền xem đơn hàng này.");
+                     return "customer/KH_CTDonHang";
+                }
+
+                // GỬI ĐƠN HÀNG RA VIEW (đã có)
+                model.addAttribute("order", order);
+
+                // --- LOGIC MỚI: CHUYỂN ĐỔI JSON ---
+                if (order.getDiaChiJson() != null && !order.getDiaChiJson().isEmpty()) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    try {
+                        // Đọc chuỗi JSON và chuyển thành đối tượng DiaChiJsonDTO
+                        DiaChiJsonDTO diaChi = mapper.readValue(order.getDiaChiJson(), DiaChiJsonDTO.class);
+                        // Gửi đối tượng đã chuyển đổi ra view
+                        model.addAttribute("diaChi", diaChi);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        model.addAttribute("diaChiError", "Không thể đọc thông tin địa chỉ giao hàng.");
+                    }
+                }
+                // --- KẾT THÚC LOGIC MỚI ---
+
+
+                // TÍNH TỔNG TIỀN (đã có)
+                double totalPrice = order.getHoaDonCTs().stream()
+                    .mapToDouble(item -> item.getSoLuong() * item.getDonGia())
+                    .sum();
+                model.addAttribute("totalPrice", totalPrice);
+
+            } else {
+                model.addAttribute("error", "Không tìm thấy đơn hàng #" + maHD);
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Lỗi khi tải chi tiết đơn hàng.");
+            e.printStackTrace();
+        }
+
         return "customer/KH_CTDonHang";
     }
 

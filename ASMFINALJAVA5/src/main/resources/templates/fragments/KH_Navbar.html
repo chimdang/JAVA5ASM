@@ -30,7 +30,7 @@
         .logo img {
             max-width: 200px;
         }
-
+	
         /* Search box */
         .search-box .form-control {
             border: none;
@@ -44,6 +44,22 @@
             color: white;
             padding: 12px 25px;
             border-radius: 0 8px 8px 0;
+        }
+	
+        /* Category dropdown */
+        .category-dropdown {
+            border: none;
+            border-right: 1px solid #ddd;
+            border-radius: 8px 0 0 8px;
+            padding: 12px 15px;
+            background: white;
+            max-width: 200px;
+        }
+
+        .search-input-group {
+            box-shadow: 0 2px 8px rgba(67, 160, 71, 0.08);
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         /* Cart */
@@ -80,7 +96,6 @@
         #logo {
             max-width: 200px;
         }
-
         
     </style>
 </head>
@@ -96,22 +111,47 @@
                <a th:href="@{/customer/index}" class="logo">
 				    <img th:src="@{/anh/logo (1).png}" alt="Pine Shop">
 				</a>
-
-
-                <!-- Search box -->	
+	
+                <!-- Search box với combobox danh mục -->	
                 <div class="flex-grow-1 mx-3">
-                    <div class="search-box d-flex">
-                        <input type="text" class="form-control" placeholder="Shopee bao ship 0Đ - Đăng ký ngay!">
-                        <button class="btn"><i class="bi bi-search"></i></button>
-                    </div>
+                    <form th:action="@{/search}" method="get" class="search-box d-flex align-items-stretch">
+					    <div class="input-group w-100">
+					        <!-- Combobox danh mục -->
+					        <span class="input-group-text bg-white border-end-0">
+					            <i class="fa-solid fa-list text-success"></i>
+					        </span>
+					        <select name="categoryId" class="form-select border-start-0 border-end" id="categorySelect" style="max-width: 200px;">
+					            <option value="">Tất cả danh mục</option>
+					            <option th:each="dm : ${danhMucs}"
+					                    th:value="${dm.maDM}"
+					                    th:text="${dm.tenDM}">
+					            </option>
+					        </select>
+					
+					        <!-- Ô tìm kiếm -->
+					        <input type="text" 
+					               class="ms-3 form-control border-start-0"
+					               name="keyword"
+					               th:value="${keyword}"
+					               placeholder="Tìm kiếm sản phẩm...">
+					
+					        <!-- Nút tìm -->
+					        <button type="submit" class="btn text-white" style="background: var(--pine-green); border-radius: 0 8px 8px 0;">
+					            <i class="fas fa-search"></i>
+					        </button>
+					    </div>
+					</form>
+
                 </div>
 
                 <!-- Cart & Account -->
-                <div class="d-flex align-items-center gap-3">
-                    <a th:href="@{/customer/cart}" class="cart-icon position-relative" style="text-decoration:none;">
-					    <i class="bi bi-cart3 fs-4" style="color:#43a047;"></i>
-					    <span class="cart-badge">3</span>
-					</a>
+              	<div class="d-flex align-items-center gap-3">
+				<!-- Giỏ hàng -->
+					<a th:href="@{/customer/cart}" class="cart-icon position-relative" style="text-decoration:none;">
+					     <i class="fas fa-shopping-cart fs-4" style="color:#43a047;"></i>
+					     <span class="cart-badge" th:text="${cartItemCount != null ? cartItemCount : 0}">0</span>
+					 </a>
+			
                     <!-- Account Dropdown -->
                     <div class="dropdown">
                         <a class="btn d-flex align-items-center px-3 py-2 bg-white rounded-pill shadow-sm fw-bold"
@@ -119,10 +159,10 @@
                             style="font-size:16px;">
                             <span class="me-2 d-flex align-items-center justify-content-center"
                                 style="width:32px; height:32px; background:linear-gradient(135deg,#ffe066,#43a047); border-radius:50%;">
-                                <i class="bi bi-person-fill" style="color:#43a047; font-size:22px;"></i>
+                                <i class="fas fa-user" style="color:#43a047; font-size:22px;"></i>
                             </span>
                             Tài khoản
-                            <i class="bi bi-caret-down-fill ms-2" style="font-size:14px;"></i>
+                            <i class="fas fa-caret-down ms-2" style="font-size:14px;"></i>
                         </a>
                       	<ul class="dropdown-menu dropdown-menu-end">
 						    <li th:if="${session.user == null}">
@@ -148,7 +188,7 @@
 						    </li>
 						    <li th:if="${session.user != null}"><hr class="dropdown-divider"></li>
 						    <li th:if="${session.user != null}">
-						        <a class="dropdown-item text-danger" th:href="@{/auth/logout}">Đăng Xuất</a>
+						        <a class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#logoffModal">Đăng Xuất</a>
 						    </li>
 						</ul>
                     </div>
@@ -157,6 +197,18 @@
         </div>
     </div>
     <script>
+    // Giữ trạng thái combobox sau khi tìm kiếm
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedCategoryId = urlParams.get('categoryId');
+        
+        if (selectedCategoryId) {
+            const categorySelect = document.querySelector('select[name="categoryId"]');
+            if (categorySelect) {
+                categorySelect.value = selectedCategoryId;
+            }
+        }
+    });
 	    document.addEventListener('DOMContentLoaded', function() {
 	        function getLastName(fullName) {
 	            if (!fullName || fullName.trim() === '' || fullName === 'User') {
@@ -176,5 +228,4 @@
 	    });
 	</script>
 </body>
-
 </html>
