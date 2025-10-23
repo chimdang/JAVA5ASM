@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	th:replace="~{shared/layout :: view('employee', ~{::title}, ~{::article})}">
+<head>
+<meta charset="UTF-8">
+<title>Quản Lý Đơn Hàng</title>
+</head>
+<body>
+	<article>
+		<style>
+body {
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	background: #f7f7f9;
+	min-height: 100vh;
+	padding: 20px;
+}
+
+.nav-tabs {
+	border-bottom: 2px solid #dee2e6;
+	margin-bottom: 0;
+}
+
+.nav-tabs .nav-link {
+	color: #666;
+	font-weight: 500;
+	border: none;
+	border-bottom: 3px solid transparent;
+	padding: 12px 24px;
+	transition: all 0.3s;
+}
+
+.nav-tabs .nav-link:hover {
+	color: #ee4d2d;
+	border-color: transparent;
+}
+
+.nav-tabs .nav-link.active {
+	color: #ee4d2d;
+	background: transparent;
+	border-color: #ee4d2d;
+}
+
+.tab-content {
+	background: white;
+	padding: 25px;
+	border-radius: 0 0 12px 12px;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.order-card {
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	padding: 20px;
+	margin-bottom: 15px;
+	transition: all 0.3s;
+}
+
+.order-card:hover {
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+	transform: translateY(-2px);
+}
+
+.order-card .d-flex {
+	margin: 8px 0;
+}
+
+.order-card span:first-child {
+	font-weight: 500;
+	color: #333;
+}
+
+.order-card .text-muted {
+	color: #666 !important;
+}
+
+.order-card .text-warning {
+	color: #f59e0b !important;
+	font-weight: 600;
+}
+
+.order-card .text-success {
+	color: #10b981 !important;
+	font-weight: 600;
+}
+
+.order-card .text-danger {
+	color: #ef4444 !important;
+	font-weight: 600;
+}
+
+.order-card .ms-auto {
+	margin-top: 15px;
+}
+
+.page-container {
+	padding: 30px;
+	background: #f7f7f9;
+	min-height: 100vh;
+}
+
+@media ( max-width : 768px) {
+	.orders-container {
+		padding: 15px;
+	}
+	.order-card .d-flex {
+		flex-direction: column;
+		gap: 5px;
+	}
+}
+</style>
+
+		<div class="page-container">
+			<ul class="nav nav-tabs" id="ordersTab" role="tablist">
+				<li class="nav-item" role="presentation"><a class="nav-link"
+					th:classappend="${activeTab}=='cho' ? ' active' : ''"
+					id="pending-tab" data-bs-toggle="tab" href="#pending" role="tab"
+					aria-controls="pending" aria-selected="true"> <i
+						class="bi bi-clock-history me-2"></i>Chờ Duyệt
+				</a></li>
+				<li class="nav-item" role="presentation"><a class="nav-link"
+					th:classappend="${activeTab}=='duyet' ? ' active' : ''"
+					id="approved-tab" data-bs-toggle="tab" href="#approved" role="tab"
+					aria-controls="approved" aria-selected="false"> <i
+						class="bi bi-check-circle me-2"></i>Đã Duyệt
+				</a></li>
+				<li class="nav-item" role="presentation"><a class="nav-link"
+					th:classappend="${activeTab}=='tuchoi' ? ' active' : ''"
+					id="rejected-tab" data-bs-toggle="tab" href="#rejected" role="tab"
+					aria-controls="rejected" aria-selected="false"> <i
+						class="bi bi-x-circle me-2"></i>Đã Từ Chối
+				</a></li>
+			</ul>
+
+			<div class="tab-content" id="ordersTabContent">
+				<!-- Tab Chờ Duyệt -->
+				<div class="tab-pane fade"
+					th:classappend="${activeTab}=='cho' ? ' show active' : ''"
+					id="pending" role="tabpanel" aria-labelledby="pending-tab">
+
+					<div th:if="${#lists.isEmpty(choDuyet)}" class="text-muted">Không
+						có đơn chờ duyệt.</div>
+
+					<div class="order-card" th:each="o : ${choDuyet}">
+						<!-- Tiêu đề -->
+						<div class="d-flex justify-content-between align-items-center">
+							<span th:text="'Hóa đơn ' + ${o.maHDStr}">Hóa đơn HD0001</span>
+						</div>
+
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Thành Tiền:</span> <span class="text-muted"
+								th:text="${#numbers.formatDecimal(o.tongTien,0,'POINT',0,'COMMA')} + 'đ'">0đ</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>SĐT Khách Hàng:</span> <span class="text-muted"
+								th:text="${o.sdt}">090xxxxxxx</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Mã Hóa Đơn:</span> <span class="text-muted"
+								th:text="${o.maHDStr}">HD0001</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Ngày Mua:</span> <span class="text-muted"
+								th:text="${#dates.format(o.ngayMua, 'dd/MM/yyyy')}">--/--/----</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Mã NV:</span> <span class="text-muted" th:text="${o.maNV}">NV0001</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Trạng Thái:</span> <span class="text-warning">Chờ
+								Duyệt</span>
+						</div>
+
+						<!-- === NÚT HÀNH ĐỘNG (chỉ ở tab Chờ Duyệt) === -->
+						<div class="d-flex justify-content-end gap-2 ms-auto"
+							style="margin-top: 12px">
+							<!-- TỪ CHỐI -->
+							<form th:action="@{/employee/orders/reject/{id}(id=${o.maHD})}"
+								method="post" class="d-inline">
+								<th:block th:if="${#ctx.containsVariable('_csrf')}">
+									<input type="hidden" th:name="${_csrf.parameterName}"
+										th:value="${_csrf.token}" />
+								</th:block>
+								<button type="submit" class="btn btn-danger px-4">Từ
+									Chối</button>
+							</form>
+
+							<!-- DUYỆT -->
+							<form th:action="@{/employee/orders/approve/{id}(id=${o.maHD})}"
+								method="post" class="d-inline">
+								<th:block th:if="${#ctx.containsVariable('_csrf')}">
+									<input type="hidden" th:name="${_csrf.parameterName}"
+										th:value="${_csrf.token}" />
+								</th:block>
+								<button type="submit" class="btn btn-success px-4">Duyệt
+									Đơn</button>
+							</form>
+						</div>
+
+					</div>
+				</div>
+
+				<!-- Tab Đã Duyệt (Đang giao) -->
+				<div class="tab-pane fade"
+					th:classappend="${activeTab}=='duyet' ? ' show active' : ''"
+					id="approved" role="tabpanel" aria-labelledby="approved-tab">
+
+					<div th:if="${#lists.isEmpty(daDuyet)}" class="text-muted">Chưa
+						có đơn đã duyệt.</div>
+
+					<div class="order-card" th:each="o : ${daDuyet}">
+						<div class="d-flex justify-content-between align-items-center">
+							<span th:text="'Hóa đơn ' + ${o.maHDStr}">Hóa đơn HD0010</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Thành Tiền:</span> <span class="text-muted"
+								th:text="${#numbers.formatDecimal(o.tongTien,0,'POINT',0,'COMMA')} + 'đ'">0đ</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>SĐT Khách Hàng:</span> <span class="text-muted"
+								th:text="${o.sdt}">090xxxxxxx</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Mã Hóa Đơn:</span> <span class="text-muted"
+								th:text="${o.maHDStr}">HD0010</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Ngày Mua:</span> <span class="text-muted"
+								th:text="${#dates.format(o.ngayMua, 'dd/MM/yyyy')}">--/--/----</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Mã NV:</span> <span class="text-muted" th:text="${o.maNV}">NV0001</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Trạng Thái:</span> <span class="text-success">Đang
+								Giao</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Tab Đã Từ Chối -->
+				<div class="tab-pane fade"
+					th:classappend="${activeTab}=='tuchoi' ? ' show active' : ''"
+					id="rejected" role="tabpanel" aria-labelledby="rejected-tab">
+
+					<div th:if="${#lists.isEmpty(tuChoi)}" class="text-muted">Không
+						có đơn bị từ chối.</div>
+
+					<div class="order-card" th:each="o : ${tuChoi}">
+						<div class="d-flex justify-content-between align-items-center">
+							<span th:text="'Hóa đơn ' + ${o.maHDStr}">Hóa đơn HD0020</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Thành Tiền:</span> <span class="text-muted"
+								th:text="${#numbers.formatDecimal(o.tongTien,0,'POINT',0,'COMMA')} + 'đ'">0đ</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>SĐT Khách Hàng:</span> <span class="text-muted"
+								th:text="${o.sdt}">09xxxxxxxx</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Mã Hóa Đơn:</span> <span class="text-muted"
+								th:text="${o.maHDStr}">HD0020</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Ngày Mua:</span> <span class="text-muted"
+								th:text="${#dates.format(o.ngayMua, 'dd/MM/yyyy')}">--/--/----</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Mã NV:</span> <span class="text-muted" th:text="${o.maNV}">NV0001</span>
+						</div>
+						<div class="d-flex justify-content-between align-items-center">
+							<span>Trạng Thái:</span> <span class="text-danger">Đã Từ
+								Chối</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</article>
+
+	<!-- Không thêm script tuỳ chỉnh -->
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

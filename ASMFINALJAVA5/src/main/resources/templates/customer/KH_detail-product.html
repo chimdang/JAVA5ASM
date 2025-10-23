@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{shared/layout :: view('customer', ~{::title}, ~{::article})}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết sản phẩm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+
+<body>
+    <article>
+        <style>
+            :root {
+                --shopee-primary: #ee4d2d;
+                --shopee-secondary: #fb5533;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #f5f5f5;
+            }
+
+            .product-detail {
+                background: white;
+                padding: 20px;
+                border-radius: 4px;
+                margin-top: 20px;
+            }
+
+            .product-images {
+                position: sticky;
+                top: 20px;
+            }
+
+            .main-image {
+                width: 100%;
+                height: 450px;
+                object-fit: cover;
+                border: 1px solid #f0f0f0;
+                border-radius: 4px;
+            }
+
+            .product-title {
+                font-size: 20px;
+                color: rgba(0, 0, 0, .87);
+                line-height: 1.5;
+                margin-bottom: 15px;
+            }
+
+            .product-status {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: 500;
+                margin-bottom: 15px;
+            }
+
+            .status-in-stock {
+                background-color: #e8f5e9;
+                color: #2e7d32;
+                border: 1px solid #a5d6a7;
+            }
+
+            .status-out-of-stock {
+                background-color: #ffebee;
+                color: #c62828;
+                border: 1px solid #ef9a9a;
+            }
+
+            .status-pre-order {
+                background-color: #fff3e0;
+                color: #ef6c00;
+                border: 1px solid #ffb74d;
+            }
+
+            .price-section {
+                background: #fafafa;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 4px;
+            }
+
+            .current-price {
+                color: var(--shopee-primary);
+                font-size: 32px;
+                font-weight: 500;
+            }
+
+            .quantity-selector {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin: 25px 0;
+            }
+
+            .quantity-controls {
+                display: flex;
+                align-items: center;
+                border: 1px solid #d9d9d9;
+                border-radius: 4px;
+            }
+
+            .quantity-btn {
+                width: 40px;
+                height: 40px;
+                border: none;
+                background: white;
+                cursor: pointer;
+                font-size: 18px;
+            }
+
+            .quantity-btn:hover:not(:disabled) {
+                background: #f5f5f5;
+            }
+
+            .quantity-btn:disabled {
+                cursor: not-allowed;
+                opacity: 0.5;
+            }
+
+            .quantity-input {
+                width: 60px;
+                height: 40px;
+                border: none;
+                border-left: 1px solid #d9d9d9;
+                border-right: 1px solid #d9d9d9;
+                text-align: center;
+                font-size: 16px;
+            }
+
+            .stock-info {
+                color: rgba(0, 0, 0, .54);
+                font-size: 14px;
+            }
+
+            .action-buttons {
+                display: flex;
+                gap: 15px;
+                margin: 30px 0;
+            }
+
+            .btn-add-cart {
+                flex: 1;
+                padding: 15px;
+                border: 1px solid var(--shopee-primary);
+                background: rgba(238, 77, 45, 0.1);
+                color: var(--shopee-primary);
+                border-radius: 4px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+
+            .btn-add-cart:hover:not(:disabled) {
+                background: rgba(238, 77, 45, 0.2);
+            }
+
+            .btn-add-cart:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .btn-buy-now {
+                flex: 1;
+                padding: 15px;
+                border: none;
+                background: var(--shopee-primary);
+                color: white;
+                border-radius: 4px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+
+            .btn-buy-now:hover:not(:disabled) {
+                background: var(--shopee-secondary);
+            }
+
+            .btn-buy-now:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .product-info-section {
+                background: white;
+                padding: 25px;
+                border-radius: 4px;
+                margin-top: 20px;
+            }
+
+            .section-title {
+                font-size: 18px;
+                color: rgba(0, 0, 0, .87);
+                padding-bottom: 15px;
+                border-bottom: 1px solid #f0f0f0;
+                margin-bottom: 20px;
+            }
+
+            .info-row {
+                display: flex;
+                padding: 15px 0;
+                border-bottom: 1px solid #f5f5f5;
+            }
+
+            .info-label {
+                width: 200px;
+                color: rgba(0, 0, 0, .54);
+                font-size: 14px;
+            }
+
+            .info-value {
+                flex: 1;
+                color: rgba(0, 0, 0, .87);
+                font-size: 14px;
+            }
+
+            .description-content {
+                line-height: 1.8;
+                color: rgba(0, 0, 0, .87);
+                white-space: pre-line;
+            }
+
+            .badge-category {
+                background: var(--shopee-primary);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+            }
+        </style>
+
+        <!-- Product Detail -->
+        <div class="container" th:if="${sanPham != null}">
+            <div class="product-detail">
+                <div class="row">
+                    <!-- Product Images -->
+                    <div class="col-lg-5">
+                        <div class="product-images">
+                            <img class="main-image" 
+							     th:src="@{'/images/' + ${sanPham.hinh}}" 
+							     th:alt="${sanPham.tenSP}"
+							     onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop'">
+                        </div>
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="col-lg-7">
+                        <h1 th:text="${sanPham.tenSP}">Tên sản phẩm</h1>
+
+                        <!-- Product Status (THAY THẾ ĐÁNH GIÁ VÀ ĐÃ BÁN) -->
+                        <div class="mb-3" th:if="${sanPham.trangThai != null}">
+                            <span th:if="${sanPham.trangThai == 'Còn hàng'}" 
+                                  class="product-status status-in-stock">
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span th:text="${sanPham.trangThai}">Còn hàng</span>
+                            </span>
+                            <span th:if="${sanPham.trangThai == 'Hết hàng'}" 
+                                  class="product-status status-out-of-stock">
+                                <i class="bi bi-x-circle-fill"></i>
+                                <span th:text="${sanPham.trangThai}">Hết hàng</span>
+                            </span>
+                            <span th:if="${sanPham.trangThai != 'Còn hàng' && sanPham.trangThai != 'Hết hàng'}" 
+                                  class="product-status status-pre-order">
+                                <i class="bi bi-clock-fill"></i>
+                                <span th:text="${sanPham.trangThai}">Trạng thái</span>
+                            </span>
+                        </div>
+
+                        <!-- Category Badge -->
+                        <h3>Phân loại</h3>
+                        <div class="mb-3" th:if="${sanPham.phanLoai != null}">
+                            <span class="badge-category" th:text="${sanPham.phanLoai}">Phân loại</span>
+                        </div>
+
+                        <div class="price-section">
+                            <span class="current-price" th:text="${#numbers.formatDecimal(sanPham.donGia, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+                        </div>
+
+                        <!-- Quantity Selector -->
+                        <div class="quantity-selector">
+                            <div class="option-label">Số Lượng</div>
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="decreaseQuantity()" 
+                                        th:disabled="${sanPham.soLuong <= 0}">-</button>
+                                <input type="number" class="quantity-input" id="quantity" value="1" min="1" 
+                                       th:max="${sanPham.soLuong}"
+                                       th:disabled="${sanPham.soLuong <= 0}">
+                                <button class="quantity-btn" onclick="increaseQuantity()"
+                                        th:disabled="${sanPham.soLuong <= 0}">+</button>
+                            </div>
+                            <span class="stock-info">
+                                <span th:text="${sanPham.soLuong}">0</span> sản phẩm có sẵn
+                            </span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <form th:action="@{/customer/cart/add}" method="post" style="flex: 1;">
+                                <input type="hidden" name="maSP" th:value="${sanPham.maSP}">
+                                <input type="hidden" name="soLuong" id="addToCartQuantity" value="1">
+                                <button type="submit" class="btn-add-cart" style="width: 100%;"
+                                        th:disabled="${sanPham.soLuong <= 0}">
+                                    <i class="bi bi-cart-plus"></i> Thêm Vào Giỏ Hàng
+                                </button>
+                            </form>
+                           <form th:action="@{/customer/buy-now}" method="post" style="flex: 1;">
+						        <input type="hidden" name="maSP" th:value="${sanPham.maSP}">
+						        <input type="hidden" name="soLuong" id="buyNowQuantity" value="1"> <button type="submit" class="btn-buy-now" style="width: 100%;"
+						                th:disabled="${sanPham.soLuong <= 0}">
+						            Mua Ngay
+						        </button>
+						    </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Specifications -->
+            <div class="product-info-section">
+                <h2 class="section-title">Thông Số Sản Phẩm</h2>
+                <div class="info-row">
+                    <div class="info-label">Danh Mục</div>
+                    <div class="info-value" th:text="${sanPham.danhMuc != null ? sanPham.danhMuc.tenDM : 'Chưa phân loại'}">Chưa phân loại</div>
+                </div>
+                <div class="info-row" th:if="${sanPham.phanLoai != null}">
+                    <div class="info-label">Phân Loại</div>
+                    <div class="info-value" th:text="${sanPham.phanLoai}">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Trạng Thái</div>
+                    <div class="info-value">
+                        <span th:if="${sanPham.trangThai != null}" 
+                              th:text="${sanPham.trangThai}"
+                              th:classappend="${sanPham.trangThai == 'Còn hàng' ? 'text-success' : (sanPham.trangThai == 'Hết hàng' ? 'text-danger' : 'text-warning')}">
+                            Trạng thái
+                        </span>
+                        <span th:if="${sanPham.trangThai == null}">Chưa cập nhật</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Kho hàng</div>
+                    <div class="info-value" th:text="${sanPham.soLuong} + ' sản phẩm'">0 sản phẩm</div>
+                </div>
+            </div>
+
+            <!-- Product Description -->
+            <div class="product-info-section">
+                <h2 class="section-title">Mô Tả Sản Phẩm</h2>
+                <div class="description-content" th:utext="${sanPham.moTa != null ? sanPham.moTa : 'Chưa có mô tả cho sản phẩm này.'}">
+                    Chưa có mô tả cho sản phẩm này.
+                </div>
+            </div>
+        </div>
+
+        <!-- Nếu không có sản phẩm -->
+        <div class="container mt-5 text-center" th:if="${sanPham == null}">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle fs-1"></i>
+                <h4>Không tìm thấy sản phẩm</h4>
+                <p>Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+                <a th:href="@{/customer/index}" class="btn btn-primary">
+                    <i class="bi bi-house"></i> Về Trang Chủ
+                </a>
+            </div>
+        </div>
+        <script th:inline="javascript">
+        // Get max quantity from server
+        
+        
+        const maxQuantity = /*[[${sanPham != null ? sanPham.soLuong : 1}]]*/
+
+        function increaseQuantity() {
+            const input = document.getElementById('quantity');
+            const currentValue = parseInt(input.value);
+            if (currentValue < maxQuantity) {
+                input.value = currentValue + 1;
+                updateHiddenQuantity();
+            }
+        }
+
+        function decreaseQuantity() {
+            const input = document.getElementById('quantity');
+            const currentValue = parseInt(input.value);
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+                updateHiddenQuantity();
+            }
+        }
+
+        function updateHiddenQuantity() {
+            const quantity = document.getElementById('quantity').value;
+            document.getElementById('addToCartQuantity').value = quantity;
+            document.getElementById('buyNowQuantity').value = quantity; // <-- THÊM DÒNG NÀY
+        }
+
+        // Update hidden input when quantity input changes
+        document.getElementById('quantity').addEventListener('change', function() {
+            if (this.value < 1) this.value = 1;
+            if (this.value > maxQuantity) this.value = maxQuantity;
+            updateHiddenQuantity();
+        });
+       
+    </script>
+    </article>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{shared/layout :: view('customer', ~{::title}, ~{::article})}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pine Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+
+<body>
+    <article>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #fff;
+                min-height: 100vh;
+            }
+
+            .logo img {
+                max-width: 200px;
+            }
+
+            /* Search Section */
+            .search-section {
+                background: rgba(255, 255, 255, 0.98);
+                padding: 30px;
+                border-radius: 16px;
+                box-shadow: 0 4px 24px rgba(67, 160, 71, 0.13), 0 0 0 4px #ffe06633;
+                border: 2px solid #ffe066;
+                margin-bottom: 20px;
+            }
+
+            .search-label {
+                color: var(--pine-green);
+                font-weight: 600;
+                font-size: 14px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            .search-input-group {
+                box-shadow: 0 2px 8px rgba(67, 160, 71, 0.08);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            .search-icon {
+                background: linear-gradient(135deg, #ffe066 0%, #ffd700 100%);
+                border: none;
+                color: var(--pine-dark);
+                font-size: 18px;
+            }
+
+            .search-input {
+                border: 2px solid #ffe066;
+                border-left: none;
+                padding: 12px 15px;
+                font-size: 15px;
+                transition: all 0.3s;
+            }
+
+            .search-input:focus {
+                border-color: var(--pine-green);
+                box-shadow: 0 0 0 0.2rem rgba(67, 160, 71, 0.15);
+                outline: none;
+            }
+
+            .btn-search {
+                background: linear-gradient(135deg, var(--pine-green) 0%, #2d7a2f 100%);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                font-weight: 600;
+                font-size: 15px;
+                border-radius: 8px;
+                transition: all 0.3s;
+                box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+            }
+
+            .btn-search:hover {
+                background: linear-gradient(135deg, #2d7a2f 0%, var(--pine-green) 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(67, 160, 71, 0.4);
+                color: white;
+            }
+
+            .search-result-info {
+                text-align: center;
+            }
+
+            .search-result-info .badge {
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            /* Categories */
+            .categories {
+                background: rgba(255, 255, 255, 0.98);
+                padding: 35px 25px 40px 25px;
+                border-radius: 16px;
+                margin-top: 30px;
+                box-shadow: 0 4px 24px rgba(67, 160, 71, 0.13), 0 0 0 4px #ffe06633;
+                border: 2px solid #ffe066;
+            }
+
+            .category-item {
+                text-align: center;
+                cursor: pointer;
+                padding: 18px 0 0 0;
+                transition: transform 0.25s, box-shadow 0.25s;
+                border-radius: 12px;
+                background: transparent;
+                box-shadow: 0 2px 8px rgba(67, 160, 71, 0.07);
+                position: relative;
+            }
+
+            .category-item:hover {
+                transform: translateY(-8px) scale(1.10);
+                box-shadow: 0 8px 24px #ffe06655, 0 2px 8px rgba(67, 160, 71, 0.13);
+                background: #fffbe6;
+                z-index: 2;
+            }
+
+            .category-item.active {
+                background: #fffbe6;
+                transform: translateY(-4px) scale(1.05);
+                box-shadow: 0 8px 24px #ffe06655;
+            }
+
+            .category-icon {
+                width: 64px;
+                height: 64px;
+                margin: 0 auto 12px;
+                background: linear-gradient(135deg, #ffe066ee 70%, #43a047 100%);
+                border-radius: 20%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 32px;
+                color: var(--pine-dark);
+                box-shadow: 0 4px 16px #ffe06655, 0 2px 8px rgba(67, 160, 71, 0.13);
+                border: 2px solid #ffd700;
+                transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+            }
+
+            .category-item:hover .category-icon {
+                background: linear-gradient(135deg, #ffd700 50%, #3bb143 100%);
+                color: #fff;
+                box-shadow: 0 8px 32px #a8ddab99;
+                border: 2px solid #43a047;
+            }
+
+            .category-name {
+                font-size: 15px;
+                color: var(--pine-green);
+                font-weight: 600;
+                letter-spacing: 1px;
+                margin-top: 2px;
+                text-shadow: 0 2px 8px #ffe06633;
+            }
+
+            /* Carousel */
+            .carousel-item img {
+                height: 500px;
+                object-fit: cover;
+                border-radius: 8px;
+                box-shadow: 0 2px 12px rgba(255, 224, 102, 0.12);
+            }
+
+            .carousel-control-prev-icon,
+            .carousel-control-next-icon {
+                background-color: var(--pine-green);
+                border-radius: 50%;
+                padding: 20px;
+            }
+
+            /* Side Banners */
+            .side-banner {
+                background: linear-gradient(135deg, var(--pine-primary) 0%, var(--pine-green) 100%);
+                height: 145px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--pine-dark);
+                font-size: 18px;
+                font-weight: bold;
+                box-shadow: 0 2px 12px rgba(255, 224, 102, 0.12);
+            }
+
+            /* Flash Sale */
+            .flash-sale {
+                background: rgba(255, 255, 255, 0.97);
+                padding: 25px;
+                border-radius: 8px;
+                margin-top: 20px;
+                box-shadow: 0 2px 12px rgba(255, 224, 102, 0.09);
+            }
+
+            .flash-title {
+                font-size: 18px;
+                color: var(--pine-green);
+                font-weight: bold;
+            }
+
+            .flash-timer {
+                background: var(--pine-dark);
+                color: white;
+                padding: 8px 15px;
+                border-radius: 8px;
+                font-size: 14px;
+            }
+
+            /* Product Card */
+            .product-card {
+                background: rgba(255, 255, 255, 0.98);
+                border: 1px solid var(--pine-primary);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 8px rgba(255, 224, 102, 0.08);
+            }
+
+            .product-card:hover {
+                transform: translateY(-2px) scale(1.03);
+                box-shadow: 0 4px 16px rgba(67, 160, 71, 0.13);
+            }
+
+            .product-image {
+                width: 100%;
+                height: 200px;
+                overflow: hidden;
+                position: relative;
+                border-radius: 8px 8px 0 0;
+            }
+
+            .product-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s;
+            }
+
+            .product-card:hover .product-image img {
+                transform: scale(1.07);
+            }
+
+            .product-badge {
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                background: var(--pine-green);
+                color: var(--pine-primary);
+                padding: 3px 8px;
+                font-size: 12px;
+                border-radius: 4px;
+                font-weight: bold;
+                box-shadow: 0 2px 8px rgba(67, 160, 71, 0.08);
+            }
+
+            .product-info {
+                padding: 12px;
+            }
+
+            .product-name {
+                font-size: 15px;
+                color: var(--pine-dark);
+                height: 40px;
+                overflow: hidden;
+                margin-bottom: 8px;
+                font-weight: 500;
+            }
+
+            .price-current {
+                color: var(--pine-green);
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .price-discount {
+                background: var(--pine-primary);
+                color: var(--pine-dark);
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 12px;
+                margin-left: 5px;
+                font-weight: bold;
+            }
+
+            .product-sold {
+                font-size: 12px;
+                color: var(--pine-dark);
+                margin-top: 8px;
+            }
+
+            /* Section Title */
+            .section-title {
+                font-size: 26px;
+                color: var(--pine-green);
+                font-weight: bold;
+                text-align: center;
+                margin-bottom: 32px;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                border-bottom: 2px solid #ffe066;
+                display: inline-block;
+                padding-bottom: 6px;
+            }
+
+            /* Footer */
+            .footer {
+                background: rgba(255, 255, 255, 0.97);
+                margin-top: 40px;
+                padding: 40px 0 20px;
+                border-top: 4px solid var(--pine-primary);
+                border-radius: 8px 8px 0 0;
+            }
+
+            .footer h5 {
+                font-size: 14px;
+                color: var(--pine-dark);
+                margin-bottom: 15px;
+                text-transform: uppercase;
+            }
+
+            .footer ul {
+                list-style: none;
+                padding: 0;
+            }
+
+            .footer li {
+                margin-bottom: 10px;
+            }
+
+            .footer a {
+                color: var(--pine-green);
+                text-decoration: none;
+                font-size: 13px;
+            }
+
+            .footer a:hover {
+                color: var(--pine-dark);
+            }
+
+            .footer-bottom {
+                text-align: center;
+                padding-top: 20px;
+                border-top: 1px solid var(--pine-primary);
+                color: var(--pine-dark);
+                font-size: 12px;
+            }
+        </style>
+        
+         <!-- Main Content -->
+        <div class="container">
+            <!-- Hiển thị kết quả tìm kiếm - ĐƠN GIẢN HÓA -->
+            <div th:if="${resultCount != null}" class="search-result-info mt-4 text-center">
+                <span class="badge bg-success-subtle text-success py-2 px-4">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Tìm thấy <strong th:text="${resultCount}">0</strong> sản phẩm
+                    <span th:if="${keyword != null and keyword != ''}" th:text="' với từ khóa: &quot;' + ${keyword} + '&quot;'"></span>
+                </span>
+            </div>
+
+            <!-- Banner Carousel -->
+            <div class="row mt-4 g-3">
+                <div class="col-lg-12">
+                    <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active"></button>
+                            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1"></button>
+                            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2"></button>
+                            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="3"></button>
+                        </div>
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&h=300&fit=crop" class="d-block w-100" alt="Banner 1">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="https://images.unsplash.com/photo-1607082349566-187342175e2f?w=800&h=300&fit=crop" class="d-block w-100" alt="Banner 2">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=300&fit=crop" class="d-block w-100" alt="Banner 3">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=800&h=300&fit=crop" class="d-block w-100" alt="Banner 4">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products from Database -->
+            <div class="flash-sale mt-4">
+                <h2 class="section-title">Tất Cả Sản Phẩm</h2>
+                <div class="row g-3">
+                    <!-- Sử dụng Thymeleaf để lặp qua danh sách sản phẩm -->
+                    <div class="col-6 col-md-4 col-lg-2" th:each="sp : ${sanPhams}">
+                        <div class="product-card">
+                            <div class="product-image">
+                                <a th:href="@{/customer/detailProduct(maSP=${sp.maSP})}">
+                                    <img th:src="@{'/images/' + ${sp.hinh}}" 
+                                         th:alt="${sp.tenSP}"
+                                         onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'"
+                                         class="product-image">
+                                </a>
+                                <!-- Hiển thị badge nếu có phân loại -->
+                                <span class="product-badge" th:if="${sp.phanLoai}" th:text="${sp.phanLoai}">New</span>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name" th:text="${sp.tenSP}">Tên sản phẩm</div>
+                                <div>
+                                    <span class="price-current" th:text="${#numbers.formatDecimal(sp.donGia, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+                                </div>
+                                <div class="product-sold">
+                                    Kho: <span th:text="${sp.soLuong}">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

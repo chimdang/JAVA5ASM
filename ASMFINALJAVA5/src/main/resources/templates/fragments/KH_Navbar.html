@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar + Modals</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --pine-primary: #ffe066;
+            --pine-secondary: #ffd700;
+            --pine-green: #43a047;
+            --pine-dark: #3bb143;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fff;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .main-header {
+            background: linear-gradient(90deg, var(--pine-primary), var(--pine-secondary));
+            padding: 25px 0;
+        }
+
+        .logo img {
+            max-width: 200px;
+        }
+	
+        /* Search box */
+        .search-box .form-control {
+            border: none;
+            padding: 12px 15px;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .search-box .btn {
+            background: var(--pine-green);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 0 8px 8px 0;
+        }
+	
+        /* Category dropdown */
+        .category-dropdown {
+            border: none;
+            border-right: 1px solid #ddd;
+            border-radius: 8px 0 0 8px;
+            padding: 12px 15px;
+            background: white;
+            max-width: 200px;
+        }
+
+        .search-input-group {
+            box-shadow: 0 2px 8px rgba(67, 160, 71, 0.08);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Cart */
+        .cart-icon {
+            color: var(--pine-dark);
+            font-size: 28px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--pine-primary);
+            color: var(--pine-dark);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid var(--pine-green);
+        }
+
+        /* Dropdown */
+        .dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0;
+        }
+
+        #logo {
+            max-width: 200px;
+        }
+        
+    </style>
+</head>
+
+<body>
+	<div th:fragment="KH_Navbar">
+
+    <!-- 🔹 Navbar -->
+    <div class="main-header">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between">
+                <!-- Logo -->
+               <a th:href="@{/customer/index}" class="logo">
+				    <img th:src="@{/anh/logo (1).png}" alt="Pine Shop">
+				</a>
+	
+                <!-- Search box với combobox danh mục -->	
+                <div class="flex-grow-1 mx-3">
+                    <form th:action="@{/search}" method="get" class="search-box d-flex align-items-stretch">
+					    <div class="input-group w-100">
+					        <!-- Combobox danh mục -->
+					        <span class="input-group-text bg-white border-end-0">
+					            <i class="fa-solid fa-list text-success"></i>
+					        </span>
+					        <select name="categoryId" class="form-select border-start-0 border-end" id="categorySelect" style="max-width: 200px;">
+					            <option value="">Tất cả danh mục</option>
+					            <option th:each="dm : ${danhMucs}"
+					                    th:value="${dm.maDM}"
+					                    th:text="${dm.tenDM}">
+					            </option>
+					        </select>
+					
+					        <!-- Ô tìm kiếm -->
+					        <input type="text" 
+					               class="ms-3 form-control border-start-0"
+					               name="keyword"
+					               th:value="${keyword}"
+					               placeholder="Tìm kiếm sản phẩm...">
+					
+					        <!-- Nút tìm -->
+					        <button type="submit" class="btn text-white" style="background: var(--pine-green); border-radius: 0 8px 8px 0;">
+					            <i class="fas fa-search"></i>
+					        </button>
+					    </div>
+					</form>
+
+                </div>
+
+                <!-- Cart & Account -->
+              	<div class="d-flex align-items-center gap-3">
+				<!-- Giỏ hàng -->
+					<a th:href="@{/customer/cart}" class="cart-icon position-relative" style="text-decoration:none;">
+					     <i class="fas fa-shopping-cart fs-4" style="color:#43a047;"></i>
+					     <span class="cart-badge" th:text="${cartItemCount != null ? cartItemCount : 0}">0</span>
+					 </a>
+			
+                    <!-- Account Dropdown -->
+                    <div class="dropdown">
+                        <a class="btn d-flex align-items-center px-3 py-2 bg-white rounded-pill shadow-sm fw-bold"
+                            href="#" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                            style="font-size:16px;">
+                            <span class="me-2 d-flex align-items-center justify-content-center"
+                                style="width:32px; height:32px; background:linear-gradient(135deg,#ffe066,#43a047); border-radius:50%;">
+                                <i class="fas fa-user" style="color:#43a047; font-size:22px;"></i>
+                            </span>
+                            Tài khoản
+                            <i class="fas fa-caret-down ms-2" style="font-size:14px;"></i>
+                        </a>
+                      	<ul class="dropdown-menu dropdown-menu-end">
+						    <li th:if="${session.user == null}">
+						        <a class="dropdown-item" th:href="@{/auth/login}">Đăng nhập</a>
+						    </li>
+						    <li th:if="${session.user == null}">
+						        <a class="dropdown-item" th:href="@{/auth/login}">Đăng ký</a>
+						    </li>
+						    <li th:if="${session.user != null}">
+						        <span class="dropdown-item-text">
+						            Xin chào, 
+						            <span class="fw-bold" id="userLastName">
+						   				<span th:text="${session.userName}">User</span>
+				     				</span>
+						        </span>
+						    </li>
+						    <li th:if="${session.user != null}"><hr class="dropdown-divider"></li>
+						    <li th:if="${session.user != null}">
+						        <a class="dropdown-item" th:href="@{/customer/profile}">Quản Lý Tài Khoản</a>
+						    </li>
+						    <li th:if="${session.user != null}">
+						        <a class="dropdown-item" th:href="@{/customer/orders}">Đơn Hàng Của Bạn</a>
+						    </li>
+						    <li th:if="${session.user != null}"><hr class="dropdown-divider"></li>
+						    <li th:if="${session.user != null}">
+						        <a class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#logoffModal">Đăng Xuất</a>
+						    </li>
+						</ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    // Giữ trạng thái combobox sau khi tìm kiếm
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedCategoryId = urlParams.get('categoryId');
+        
+        if (selectedCategoryId) {
+            const categorySelect = document.querySelector('select[name="categoryId"]');
+            if (categorySelect) {
+                categorySelect.value = selectedCategoryId;
+            }
+        }
+    });
+	    document.addEventListener('DOMContentLoaded', function() {
+	        function getLastName(fullName) {
+	            if (!fullName || fullName.trim() === '' || fullName === 'User') {
+	                return fullName;
+	            }
+	            const names = fullName.trim().split(/\s+/);
+	            return names[names.length - 1];
+	        }
+	
+	        // Xử lý tên cuối cùng
+	        const lastNameElement = document.getElementById('userLastName');
+	        if (lastNameElement) {
+	            const fullName = lastNameElement.textContent.trim();
+	            const lastName = getLastName(fullName);
+	            lastNameElement.textContent = lastName;
+	        }
+	    });
+	</script>
+</body>
+</html>

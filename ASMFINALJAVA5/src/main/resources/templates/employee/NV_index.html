@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{shared/layout :: view('employee', ~{::title}, ~{::article})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Thống Kê Dashboard</title>
+</head>
+<body>
+<article>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card-icon {
+            font-size: 3rem;
+            opacity: 0.2;
+            transition: all .3s ease;
+        }
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            transition: transform .2s ease-in-out, box-shadow .2s ease-in-out;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 0.5rem 1.75rem 0 rgba(58, 59, 69, 0.25);
+            cursor: pointer;
+        }
+        .card:hover .card-icon {
+            opacity: 0.4;
+            transform: scale(1.1);
+        }
+        .border-left-primary { border-left: .25rem solid #4e73df!important; }
+        .border-left-success { border-left: .25rem solid #1cc88a!important; }
+        .border-left-info { border-left: .25rem solid #36b9cc!important; }
+        .border-left-warning { border-left: .25rem solid #f6c23e!important; }
+        .border-left-danger { border-left: .25rem solid #e74a3b!important; }
+        .border-left-secondary { border-left: .25rem solid #858796!important; }
+
+        .text-primary { color: #4e73df!important; }
+        .text-success { color: #1cc88a!important; }
+        .text-info { color: #36b9cc!important; }
+        .text-warning { color: #f6c23e!important; }
+        .text-danger { color: #e74a3b!important; }
+        .text-secondary { color: #858796!important; }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <div class="container-fluid p-4">
+        <h1 class="h3 mb-4 text-gray-800">Bảng điều khiển - Thống kê</h1>
+
+        <div class="row">
+
+            <div class="col-xl-4 col-md-6 mb-4">
+                <a  class="text-decoration-none">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Tổng doanh thu</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 counter"
+                                         th:data-target="${totalRevenue}">0 ₫</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-dollar-sign card-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6 mb-4">
+                <a  class="text-decoration-none">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Tổng sản phẩm</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 counter"
+                                         th:data-target="${totalProducts}">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-box-open card-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6 mb-4">
+                <a  class="text-decoration-none">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Tổng khách hàng</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 counter"
+                                         th:data-target="${totalUsers}">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users card-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6 mb-4">
+                <a  class="text-decoration-none">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Tổng nhân viên</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 counter"
+                                         th:data-target="${totalEmployees}">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-user-tie card-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6 mb-4">
+                 <a  class="text-decoration-none">
+                    <div class="card border-left-danger shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                        Tổng tài khoản</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 counter"
+                                         th:data-target="${totalAccounts}">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-key card-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6 mb-4">
+                 <a  class="text-decoration-none">
+                    <div class="card border-left-secondary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                                        Tổng danh mục</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 counter"
+                                         th:data-target="${totalCategories}">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-list-alt card-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Biểu đồ Doanh thu Theo Ngày</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Giữ nguyên phần script này
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Dữ liệu cho biểu đồ từ Spring Controller
+            const chartLabels = /*[[${chartLabels}]]*/ [];
+            const chartData = /*[[${chartData}]]*/ [];
+
+            // 2. Cấu hình và vẽ biểu đồ Chart.js
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            const revenueChart = new Chart(ctx, {
+                type: 'line', // Loại biểu đồ
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: chartData,
+                        backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                        pointBorderColor: 'rgba(78, 115, 223, 1)',
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: 'rgba(78, 115, 223, 1)',
+                        pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+                        borderWidth: 2,
+                        lineTension: 0.3 // Làm cong đường line
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Hiệu ứng đếm số
+            const counters = document.querySelectorAll('.counter');
+            const speed = 200; // Tốc độ càng lớn, animation càng chậm
+
+            counters.forEach(counter => {
+                const animate = () => {
+                    const target = +counter.getAttribute('data-target');
+                    const count = +counter.innerText.replace(/[^0-9]/g, '');
+                    
+                    const inc = Math.ceil(target / speed);
+
+                    if (count < target) {
+                        const newCount = count + inc;
+                        if (counter.innerText.includes('₫')) {
+                            counter.innerText = new Intl.NumberFormat('vi-VN').format(newCount) + ' ₫';
+                        } else {
+                            counter.innerText = newCount;
+                        }
+                        setTimeout(animate, 10);
+                    } else {
+                         if (counter.innerText.includes('₫')) {
+                            counter.innerText = new Intl.NumberFormat('vi-VN').format(target) + ' ₫';
+                        } else {
+                            counter.innerText = target;
+                        }
+                    }
+                };
+                animate();
+            });
+        });
+    </script>
+</article>
+</body>
+</html>
